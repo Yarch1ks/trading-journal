@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Вход / Регистрация</title>
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+  <style>
+    .auth-container { max-width: 420px; margin: 40px auto; padding: 20px; background: #121417; border: 1px solid #2a2f36; border-radius: 10px; }
+    .auth-container h1 { margin: 0 0 10px 0; font-size: 22px; }
+    .auth-tabs { display: flex; gap: 10px; margin: 10px 0 20px; }
+    .auth-tabs button { flex: 1; padding: 10px; background: #1a1f25; color: #e5e7eb; border: 1px solid #2a2f36; border-radius: 6px; cursor: pointer; }
+    .auth-tabs button.active { background: #2563eb; border-color: #2563eb; }
+    form { display: flex; flex-direction: column; gap: 10px; }
+    input { padding: 10px; border-radius: 6px; border: 1px solid #2a2f36; background: #0f1216; color: #e5e7eb; }
+    .auth-actions { display: flex; gap: 10px; margin-top: 10px; }
+    .auth-actions button { flex: 1; padding: 10px; border-radius: 6px; border: none; background: #2563eb; color: white; cursor: pointer; }
+    .muted { color: #94a3b8; font-size: 12px; }
+    .msg { min-height: 20px; font-size: 13px; }
+    .ok { color: #10b981; }
+    .err { color: #ef4444; }
+    .link { color: #60a5fa; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+  </style>
+  <script defer src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // Вставлены предоставленные ключи
+    window.SUPABASE_URL = "https://bmxmtjbafnwoetwkuybj.supabase.co";
+    window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
+  </script>
+  <script defer src="./assets/js/auth.js"></script>
+</head>
+<body>
+  <div class="auth-container">
+    <h1>Авторизация</h1>
+    <p class="muted">Войдите или зарегистрируйтесь для доступа к журналу.</p>
+
+    <div class="auth-tabs">
+      <button id="tab-login" class="active" type="button">Вход</button>
+      <button id="tab-signup" type="button">Регистрация</button>
+    </div>
+
+    <form id="login-form">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Пароль" required />
+      <div class="auth-actions">
+        <button type="submit">Войти</button>
+      </div>
+      <div id="login-msg" class="msg"></div>
+    </form>
+
+    <form id="signup-form" style="display:none">
+      <input type="text" name="nickname" placeholder="Никнейм" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Пароль" required />
+      <div class="auth-actions">
+        <button type="submit">Зарегистрироваться</button>
+      </div>
+      <div id="signup-msg" class="msg"></div>
+    </form>
+
+    <p class="muted">После входа вы будете перенаправлены на
+      <a class="link" href="./journal.html">journal.html</a>
+    </p>
+  </div>
+
+  <script>
+    // Переключение вкладок
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const loginForm = document.getElementById('login-form');
+    const signupForm = document.getElementById('signup-form');
+
+    tabLogin.addEventListener('click', () => {
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      loginForm.style.display = '';
+      signupForm.style.display = 'none';
+    });
+    tabSignup.addEventListener('click', () => {
+      tabSignup.classList.add('active');
+      tabLogin.classList.remove('active');
+      signupForm.style.display = '';
+      loginForm.style.display = 'none';
+    });
+  </script>
+</body>
+</html>

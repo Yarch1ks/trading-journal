@@ -1,4 +1,24 @@
 <!DOCTYPE html>
+<script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+<script>
+  // Используем те же глобальные переменные, что и в auth.html.
+  // Если хотите — можно вынести в отдельный файл и подключить везде.
+  window.SUPABASE_URL = window.SUPABASE_URL || "https://bmxmtjbafnwoetwkuybj.supabase.co";
+  window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      if (!window.supabase) return; // если SDK не загрузился — не блокируем, но это будет ошибкой конфигурации
+      const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = './auth.html';
+      }
+    } catch (e) {
+      // При ошибке аутентификации лучше отправить на auth
+      window.location.href = './auth.html';
+    }
+  });
+</script>
 <html lang="ru" data-theme="light">
 <head>
   <meta charset="UTF-8" />
