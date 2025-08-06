@@ -41,7 +41,7 @@
     </div>
 
     <form id="login-form">
-      <input type="email" name="email" placeholder="Email" required />
+      <input type="text" name="nickname" placeholder="Никнейм" required />
       <input type="password" name="password" placeholder="Пароль" required />
       <div class="auth-actions">
         <button type="submit">Войти</button>
@@ -51,7 +51,6 @@
 
     <form id="signup-form" style="display:none">
       <input type="text" name="nickname" placeholder="Никнейм" required />
-      <input type="email" name="email" placeholder="Email" required />
       <input type="password" name="password" placeholder="Пароль" required />
       <div class="auth-actions">
         <button type="submit">Зарегистрироваться</button>
@@ -83,6 +82,11 @@
       signupForm.style.display = '';
       loginForm.style.display = 'none';
     });
+
+    // Подсказка по формату никнейма (допустим только a-z0-9._- для почтового алиаса)
+    function normalizeNickname(n) {
+      return String(n).trim().toLowerCase();
+    }
   </script>
 </body>
 </html>

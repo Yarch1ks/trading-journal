@@ -22,6 +22,17 @@
 
   const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
+  // Генерация email из никнейма по правилу: nickname@trading.local
+  const EMAIL_SUFFIX = "trading.local";
+  function emailFromNickname(nicknameRaw) {
+    const nickname = String(nicknameRaw || "").trim().toLowerCase();
+    if (!nickname) throw new Error("Введите никнейм");
+    // Дополнительно можно отфильтровать недопустимые символы для псевдо-домена
+    const sanitized = nickname.replace(/[^a-z0-9._-]/g, "");
+    if (!sanitized) throw new Error("Неверный никнейм");
+    return `${sanitized}@${EMAIL_SUFFIX}`;
+  }
+
   async function ensureProfile(userId, nickname) {
     // Insert profile if not exists; handle unique nickname
     // First, check nickname uniqueness
@@ -54,7 +65,8 @@
     }
   }
 
-  async function signUp({ email, password, nickname }) {
+  async function signUp({ nickname, password }) {
+    const email = emailFromNickname(nickname);
     // Create auth user with metadata
     const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
       email,
@@ -73,7 +85,8 @@
     return signUpData;
   }
 
-  async function signIn({ email, password }) {
+  async function signIn({ nickname, password }) {
+    const email = emailFromNickname(nickname);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
@@ -103,7 +116,6 @@
         e.preventDefault();
         const fd = new FormData(signupForm);
         const nickname = String(fd.get("nickname") || "").trim();
-        const email = String(fd.get("email") || "").trim();
         const password = String(fd.get("password") || "");
         const msg = document.getElementById("signup-msg");
         if (msg) msg.className = "msg";
@@ -111,10 +123,10 @@
 
         try {
           if (!nickname) throw new Error("Введите никнейм");
-          await signUp({ email, password, nickname });
+          await signUp({ nickname, password });
           if (msg) {
             msg.className = "msg ok";
-            msg.textContent = "Успешно! Проверьте почту (если требуется подтверждение) или войдите.";
+            msg.textContent = "Успешно! Теперь войдите под никнеймом и паролем.";
           }
         } catch (err) {
           if (msg) {
@@ -129,14 +141,15 @@
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const fd = new FormData(loginForm);
-        const email = String(fd.get("email") || "").trim();
+        const nickname = String(fd.get("nickname") || "").trim();
         const password = String(fd.get("password") || "");
         const msg = document.getElementById("login-msg");
         if (msg) msg.className = "msg";
         if (msg) msg.textContent = "Вход...";
 
         try {
-          await signIn({ email, password });
+          if (!nickname) throw new Error("Введите никнейм");
+          await signIn({ nickname, password });
           if (msg) {
             msg.className = "msg ok";
             msg.textContent = "Вход выполнен. Переход к журналу...";
