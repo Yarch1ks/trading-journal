@@ -22,8 +22,8 @@
 
   const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-  // Генерация email из никнейма по правилу: nickname@trading.local
-  const EMAIL_SUFFIX = "trading.local";
+  // Генерация email из никнейма по правилу: nickname@example.com (валидный домен)
+  const EMAIL_SUFFIX = "example.com";
   function emailFromNickname(nicknameRaw) {
     const nickname = String(nicknameRaw || "").trim().toLowerCase();
     if (!nickname) throw new Error("Введите никнейм");
