@@ -5,6 +5,7 @@ import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } 
 
 // DOM refs
 const themeToggle = document.getElementById("themeToggle");
+const userNameEl = document.getElementById("userName");
 
 // Custom dropdowns
 const accountDropdown = document.getElementById("accountDropdown");
@@ -52,6 +53,33 @@ let sparkEquity, sparkWinrate, sparkTrades, sparkPnl;
 // Charts
 let equityChart, winrateChart, pnlChart, pieChart;
 
+async function fetchNicknameViaSupabase() {
+  try {
+    if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return null;
+    const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { data: { user }, error } = await client.auth.getUser();
+    if (error || !user) return null;
+
+    // 1) из user_metadata.nickname
+    const metaNick = user.user_metadata && user.user_metadata.nickname;
+    if (metaNick) return String(metaNick);
+
+    // 2) из таблицы profiles по id
+    const { data: prof, error: pErr } = await client.from("profiles").select("nickname").eq("id", user.id).maybeSingle();
+    if (!pErr && prof && prof.nickname) return String(prof.nickname);
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+async function ensureHeaderNickname() {
+  if (!userNameEl) return;
+  const nick = await fetchNicknameViaSupabase();
+  if (nick) userNameEl.textContent = nick;
+}
+
 function init() {
   try {
     const status = document.createElement("div");
@@ -70,6 +98,7 @@ function init() {
     document.body.appendChild(status);
 
     hydrateSelectors();
+    ensureHeaderNickname();
     hydrateNotes();
     hydrateGoals();
     wireEvents();
