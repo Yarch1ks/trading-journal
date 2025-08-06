@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Journal — Журнал сделок</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="branding">
+        <div class="logo">TJ</div>
+        <div class="title">
+          <h1>Журнал сделок</h1>
+          <span class="subtitle">Список, фильтры, импорт/экспорт</span>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="selects">
+          <div class="dropdown" id="accDD">
+            <button class="btn ghost dropdown-toggle"><span id="accLbl">Аккаунт</span><span class="chev">▾</span></button>
+            <ul class="dropdown-menu" id="accMenu" role="listbox" aria-label="Аккаунты"></ul>
+          </div>
+          <div class="dropdown" id="periodDD">
+            <button class="btn ghost dropdown-toggle"><span id="periodLbl">Всё время</span><span class="chev">▾</span></button>
+            <ul class="dropdown-menu" id="periodMenu" role="listbox" aria-label="Периоды">
+              <li data-value="1D">День</li>
+              <li data-value="1W">Неделя</li>
+              <li data-value="1M">Месяц</li>
+              <li data-value="3M">3 месяца</li>
+              <li data-value="YTD">YTD</li>
+              <li data-value="ALL" class="active">Всё время</li>
+            </ul>
+          </div>
+          <label class="select">
+            <span>Символ</span>
+            <input id="filterSymbol" placeholder="ES, BTCUSDT..." style="padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--elev-2);color:var(--text);" />
+          </label>
+          <label class="select">
+            <span>Стратегия</span>
+            <input id="filterStrategy" placeholder="Breakout..." style="padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--elev-2);color:var(--text);" />
+          </label>
+          <label class="select">
+            <span>Результат</span>
+            <select id="filterResult">
+              <option value="all" selected>Все</option>
+              <option value="win">Win</option>
+              <option value="loss">Loss</option>
+            </select>
+          </label>
+        </div>
+        <button id="themeToggle" class="btn ghost icon" title="Light/Dark" aria-label="Переключить тему"><span class="icon-sun">☀️</span><span class="icon-moon">🌙</span></button>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <section class="grid kpis separated">
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Count</span>
+            <span class="kpi-subtitle">(выборка)</span>
+          </div>
+          <div class="kpi-value" id="kCount">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Win Rate</span>
+            <span class="kpi-subtitle">(выборка)</span>
+          </div>
+          <div class="kpi-value" id="kWR">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Total R</span>
+            <span class="kpi-subtitle">(выборка)</span>
+          </div>
+          <div class="kpi-value" id="kR">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">P&L</span>
+            <span class="kpi-subtitle">(выборка)</span>
+          </div>
+          <div class="kpi-value" id="kPnl">—</div>
+        </div>
+      </section>
+
+      <section class="card hoverable">
+        <div class="card-header split">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button id="btnAdd" class="btn">+ Добавить</button>
+            <button id="btnImport" class="btn ghost">Импорт CSV</button>
+            <button id="btnExport" class="btn ghost">Экспорт CSV</button>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label class="select">
+              <span>На странице</span>
+              <select id="pageSize">
+                <option>25</option>
+                <option selected>50</option>
+                <option>100</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table compact" id="tblTrades">
+            <thead>
+              <tr>
+                <th data-sort="exitAt">Дата</th>
+                <th data-sort="symbol">Инструмент</th>
+                <th data-sort="strategy">Стратегия</th>
+                <th data-sort="r">R</th>
+                <th data-sort="pnl">P&L</th>
+                <th>Заметка</th>
+                <th style="width:140px;">Действия</th>
+              </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+        <div id="pager" style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+          <div class="muted" id="pagerInfo">—</div>
+          <div style="display:flex;gap:6px;">
+            <button id="prevPage" class="btn xs ghost">Предыдущая</button>
+            <button id="nextPage" class="btn xs ghost">Следующая</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <a href="index.html" class="btn ghost">← На дашборд</a>
+      <span class="muted">Импорт/экспорт CSV, CRUD в памяти с LocalStorage.</span>
+    </footer>
+  </div>
+
+  <!-- Modal -->
+  <div id="modalBackdrop" style="display:none;position:fixed;inset:0;background:rgba(2,6,23,.6);z-index:80;"></div>
+  <div id="modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--elev-1);border:1px solid var(--border);border-radius:12px;min-width:520px;max-width:90vw;box-shadow:var(--shadow);z-index:90;">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);padding:12px 14px;">
+      <strong id="modalTitle">Сделка</strong>
+      <button id="modalClose" class="btn xs ghost">✕</button>
+    </div>
+    <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <label class="select"><span>Дата (DD-MM-YYYY)</span><input id="fExitAt" placeholder="06-08-2025"></label>
+      <label class="select"><span>Аккаунт</span><select id="fAccount"></select></label>
+      <label class="select"><span>Символ</span><input id="fSymbol" placeholder="ES"></label>
+      <label class="select"><span>Стратегия</span><input id="fStrategy" placeholder="Breakout"></label>
+      <label class="select"><span>Side</span>
+        <select id="fSide">
+          <option value="long" selected>long</option>
+          <option value="short">short</option>
+        </select>
+      </label>
+      <label class="select"><span>Qty</span><input id="fQty" type="number" step="0.01" value="1"></label>
+      <label class="select"><span>Entry Price</span><input id="fEntryPrice" type="number" step="0.01"></label>
+      <label class="select"><span>Exit Price</span><input id="fExitPrice" type="number" step="0.01"></label>
+      <label class="select"><span>R</span><input id="fR" type="number" step="0.01"></label>
+      <label class="select"><span>P&L</span><input id="fPnl" type="number" step="0.01"></label>
+      <label class="select"><span>Fees</span><input id="fFees" type="number" step="0.01" value="0"></label>
+      <label class="select" style="grid-column:1/-1;"><span>Tags (“;”)</span><input id="fTags" placeholder="tag1;tag2"></label>
+      <label class="select" style="grid-column:1/-1;"><span>Notes</span><input id="fNotes" placeholder=""></label>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);padding:12px 14px;">
+      <button id="btnDelete" class="btn ghost" style="color:var(--red);border-color:var(--red);">Удалить</button>
+      <button id="btnSave" class="btn">Сохранить</button>
+    </div>
+  </div>
+
+  <input type="file" id="csvInput" accept=".csv" style="display:none"/>
+
+  <script type="module" src="assets/js/journal.js"></script>
+</body>
+</html>

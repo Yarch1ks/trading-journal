@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Journal — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- font-display: swap to reduce layout shift on initial load -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="app-header">
+      <div class="branding">
+        <div class="logo">TJ</div>
+        <div class="title">
+          <h1>Trading Journal</h1>
+          <span class="subtitle">Главная</span>
+        </div>
+      </div>
+<div class="actions">
+  <div class="selects">
+    <div class="dropdown" id="accountDropdown">
+      <button class="btn ghost dropdown-toggle" aria-haspopup="listbox">
+        <span class="dropdown-label" id="accountDropdownLabel">Аккаунт</span>
+        <span class="chev">▾</span>
+      </button>
+      <ul class="dropdown-menu" id="accountDropdownMenu" role="listbox" aria-label="Аккаунты"></ul>
+    </div>
+
+    <div class="dropdown" id="periodDropdown">
+      <button class="btn ghost dropdown-toggle" aria-haspopup="listbox">
+        <span class="dropdown-label" id="periodDropdownLabel">Всё время</span>
+        <span class="chev">▾</span>
+      </button>
+      <ul class="dropdown-menu" id="periodDropdownMenu" role="listbox" aria-label="Периоды">
+        <li data-value="1D">День</li>
+        <li data-value="1W">Неделя</li>
+        <li data-value="1M">Месяц</li>
+        <li data-value="3M">3 месяца</li>
+        <li data-value="YTD">YTD</li>
+        <li data-value="ALL" class="active">Всё время</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="user">
+    <img id="userAvatar" class="avatar" alt="User" src="https://api.dicebear.com/8.x/identicon/svg?seed=trader" />
+    <span id="userName" class="username">Trader One</span>
+  </div>
+
+  <button id="themeToggle" class="btn ghost icon" title="Light/Dark" aria-label="Переключить тему">
+    <span class="icon-sun" aria-hidden="true">☀️</span>
+    <span class="icon-moon" aria-hidden="true">🌙</span>
+  </button>
+</div>
+    </header>
+
+    <main class="dashboard">
+      <section class="grid kpis separated kpis-fixed">
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Equity</span>
+            <span class="kpi-subtitle" id="equityDateRange"></span>
+          </div>
+          <div class="kpi-value" id="equityValue">—</div>
+          <div class="kpi-delta" id="equityDelta">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Win Rate</span>
+            <span class="kpi-subtitle">(в периоде)</span>
+          </div>
+          <div class="kpi-value" id="winRateValue">—</div>
+          <div class="kpi-delta" id="winRateDelta">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Trades</span>
+            <span class="kpi-subtitle">(в периоде)</span>
+          </div>
+          <div class="kpi-value" id="tradesCountValue">—</div>
+          <div class="kpi-delta" id="tradesCountDelta">—</div>
+        </div>
+        <div class="card kpi hoverable">
+          <div class="kpi-header">
+            <span class="kpi-title">P&L</span>
+            <span class="kpi-subtitle">(в периоде)</span>
+          </div>
+          <div class="kpi-value" id="pnlValue">—</div>
+          <div class="kpi-delta" id="pnlDelta">—</div>
+        </div>
+      </section>
+
+      <section class="grid charts">
+        <div class="card chart">
+          <div class="card-header">
+            <h3>Equity Curve</h3>
+          </div>
+          <canvas id="equityChart" height="140"></canvas>
+        </div>
+        <div class="card chart">
+          <div class="card-header">
+            <h3>Win Rate</h3>
+          </div>
+          <canvas id="winrateChart" height="140"></canvas>
+        </div>
+        <div class="card chart">
+          <div class="card-header">
+            <h3>P&L по периодам</h3>
+          </div>
+          <canvas id="pnlChart" height="140"></canvas>
+        </div>
+        <div class="card chart">
+          <div class="card-header tabs">
+            <h3>Распределение</h3>
+            <div class="tab-buttons">
+              <button class="btn xs" data-pie="strategy">Стратегии</button>
+              <button class="btn xs ghost" data-pie="symbol">Символы</button>
+            </div>
+          </div>
+          <canvas id="pieChart" height="140"></canvas>
+        </div>
+      </section>
+
+      <section class="grid two-col">
+        <div class="card">
+          <div class="card-header split">
+            <h3>Журнал сделок</h3>
+            <a id="journalLink" href="#" class="btn">Открыть</a>
+          </div>
+          <div class="table-wrap">
+            <div class="table-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
+              <button id="addTradeBtn" class="btn">+ Добавить сделку</button>
+            </div>
+            <table class="table compact" id="recentTradesTable">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Инструмент</th>
+                  <th>Стратегия</th>
+                  <th>R</th>
+                  <th>P&L</th>
+                  <th style="width:100px;">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="recentTradesBody">
+                <!-- filled by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="stack">
+          <div class="card">
+            <div class="card-header split">
+              <h3>Заметки трейдера</h3>
+              <div class="note-meta">
+                <label class="select" style="display:inline-flex;align-items:center;gap:6px;">
+                  <span>Сортировка</span>
+                  <select id="notesSort">
+                    <option value="desc" selected>Новые сверху</option>
+                    <option value="asc">Старые сверху</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div class="notes-wrap">
+              <div class="note-tags" id="notesTags"></div>
+              <textarea id="notesArea" placeholder="Идеи, сетапы, наблюдения..." rows="8"></textarea>
+              <div class="notes-actions">
+                <label style="display:inline-flex;align-items:center;gap:6px;">
+                  <input type="checkbox" id="noteImportant"/> важно
+                </label>
+                <input id="noteNewTag" placeholder="тег" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--elev-2);color:var(--text);width:110px;">
+                <button id="addTagBtn" class="btn ghost">+ тег</button>
+                <button id="saveNotesBtn" class="btn">Сохранить</button>
+                <span id="notesSaved" class="muted"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header split">
+              <h3>Цели / Прогресс</h3>
+              <button id="addGoalBtn" class="btn ghost">+ Цель</button>
+            </div>
+            <ul id="goalsList" class="goals-list">
+              <!-- goals injected -->
+            </ul>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>© Trading Journal</span>
+      <span class="muted">Минималистичный дашборд. Модульная архитектура.</span>
+    </footer>
+  </div>
+
+  <script type="module" src="assets/js/app.js"></script>
+</body>
+</html>
