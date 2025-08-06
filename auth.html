@@ -28,7 +28,13 @@
     window.SUPABASE_URL = "https://bmxmtjbafnwoetwkuybj.supabase.co";
     window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
   </script>
-  <script defer src="./assets/js/auth.js"></script>
+  <script>
+    // Форсируем актуальные ключи и домен для маппинга email, чтобы обойти кэш
+    window.SUPABASE_URL = "https://bmxmtjbafnwoetwkuybj.supabase.co";
+    window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
+    window.AUTH_EMAIL_SUFFIX = "example.com";
+  </script>
+  <script defer src="./assets/js/auth.js?v=20250806-1"></script>
 </head>
 <body>
   <div class="auth-container">
