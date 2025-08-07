@@ -142,6 +142,7 @@
   `;
 
   function injectStylesOnce() {
+    console.debug("Accounts: injectStylesOnce");
     if (document.getElementById("accountsModalStyles")) return;
     const style = document.createElement("style");
     style.id = "accountsModalStyles";
@@ -195,11 +196,17 @@
   }
 
   function injectModal() {
-    if (document.getElementById("accountsModalBackdrop")) return;
+    console.debug("Accounts: injectModal start");
+    if (document.getElementById("accountsModalBackdrop")) {
+      console.debug("Accounts: already injected");
+      return;
+    }
     injectStylesOnce();
     const wrapper = document.createElement("div");
     wrapper.innerHTML = TEMPLATE;
-    document.body.appendChild(wrapper.firstChild);
+    const node = wrapper.firstChild;
+    document.body.appendChild(node);
+    console.debug("Accounts: injected backdrop =", !!document.getElementById("accountsModalBackdrop"));
 
     // Wire basic open/close
     const backdrop = document.getElementById("accountsModalBackdrop");
@@ -259,12 +266,17 @@
       backdrop.setAttribute("aria-hidden", "true");
     }
     async function openAndLoad() {
+      console.debug("Accounts: openAndLoad");
       let el = document.getElementById("accountsModalBackdrop");
       if (!el) {
+        console.debug("Accounts: backdrop missing, injecting…");
         injectModal();
         el = document.getElementById("accountsModalBackdrop");
       }
-      if (!el) return;
+      if (!el) {
+        console.warn("Accounts: cannot create backdrop");
+        return;
+      }
       el.hidden = false;
       el.setAttribute("aria-hidden", "false");
       await load();
@@ -275,9 +287,9 @@
       if (e.target === backdrop) close();
     });
 
-    // Listen for initial-load event dispatched by AccountsUI.open()
-    document.addEventListener("accounts-do-initial-load", () => {
-      openAndLoad();
+    // expose a bound loader to call from public API without custom events
+    window.AccountsUI = Object.assign(window.AccountsUI || {}, {
+      _openAndLoad: () => openAndLoad()
     });
 
     // List interactions
@@ -391,17 +403,11 @@
   window.AccountsUI = Object.assign(window.AccountsUI || {}, {
     injectModal,
     open: async () => {
-      // Ensure modal exists
+      // call the internal bound loader directly
       if (!document.getElementById("accountsModalBackdrop")) injectModal();
-      const b = document.getElementById("accountsModalBackdrop");
-      if (!b) return;
-      b.hidden = false;
-      b.setAttribute("aria-hidden", "false");
-      // After visible, load data
-      try {
-        // call internal loader by dispatching custom event the modal listens to
-        document.dispatchEvent(new CustomEvent("accounts-do-initial-load"));
-      } catch {}
+      if (window.AccountsUI && typeof window.AccountsUI._openAndLoad === "function") {
+        await window.AccountsUI._openAndLoad();
+      }
     },
     close: () => {
       const b = document.getElementById("accountsModalBackdrop");
@@ -419,13 +425,21 @@
       const triggers = document.querySelectorAll("#openAccountsBtn");
       triggers.forEach((t) => {
         if (t.__accBound) return;
-        t.addEventListener("click", () => {
+        t.addEventListener("click", async () => {
+          console.debug("Accounts: button click");
           if (window.AccountsUI && typeof window.AccountsUI.open === "function") {
-            window.AccountsUI.open();
+            await window.AccountsUI.open();
+          } else {
+            // fallback: force inject and load
+            if (!document.getElementById("accountsModalBackdrop")) injectModal();
+            if (window.AccountsUI && typeof window.AccountsUI._openAndLoad === "function") {
+              await window.AccountsUI._openAndLoad();
+            }
           }
         });
         t.__accBound = true;
       });
+      console.debug("Accounts: wire complete, buttons =", triggers.length);
     }
     wire();
     const mo = new MutationObserver(() => wire());
