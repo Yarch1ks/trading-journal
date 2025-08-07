@@ -37,24 +37,25 @@ const modal = document.getElementById("modal");
 const modalBackdrop = document.getElementById("modalBackdrop");
 const modalClose = document.getElementById("modalClose");
 const modalTitle = document.getElementById("modalTitle");
-const fExitAt = document.getElementById("fExitAt");
-const fAccount = document.getElementById("fAccount");
-const fSymbol = document.getElementById("fSymbol");
-const fStrategy = document.getElementById("fStrategy");
-const fSide = document.getElementById("fSide");
-const fQty = document.getElementById("fQty");
-const fEntryPrice = document.getElementById("fEntryPrice");
-const fExitPrice = document.getElementById("fExitPrice");
-const fR = document.getElementById("fR");
-const fPnl = document.getElementById("fPnl");
-const fFees = document.getElementById("fFees");
-const fTags = document.getElementById("fTags");
+const fStartAt = document.getElementById("fStartAt");     // Start date (DD-MM-YYYY)
+const fEndAt = document.getElementById("fEndAt");         // End date (DD-MM-YYYY)
+const fAccount = document.getElementById("fAccount");     // Account (select)
+const fPair = document.getElementById("fPair");           // Pair (symbol)
+const fDirection = document.getElementById("fDirection"); // long/short
+const fSession = document.getElementById("fSession");     // ASIA/FRANKFURT/LO_KZ/LUNCH/NY_KZ
+const fResult = document.getElementById("fResult");       // win/be/loss
+const fRR = document.getElementById("fRR");               // RR (manual)
+const fRiskPct = document.getElementById("fRiskPct");     // Risk %
+const fRiskUsd = document.getElementById("fRiskUsd");     // Risk $
+const fRRAuto = document.getElementById("fRRAuto");       // RR Auto (read-only)
+const fProfitPct = document.getElementById("fProfitPct"); // Profit % (read-only = RR)
+const fNetUsd = document.getElementById("fNetUsd");       // Net Result $ (read-only = Risk$ * RR)
 const fNotes = document.getElementById("fNotes");
 const btnSave = document.getElementById("btnSave");
 const btnDelete = document.getElementById("btnDelete");
 
 /* ============== Page-local State ============== */
-let sortBy = "exitAt";
+let sortBy = "exitAt"; // keep existing table columns for now
 let sortDir = "desc";
 let pageIdx = 0;
 let pageSize = parseInt(pageSizeSel.value, 10) || 50;
@@ -132,7 +133,8 @@ function hydratePeriodMenu() {
 function openModal(trade = null) {
   editingId = trade?.id || null;
   if (modalTitle) modalTitle.textContent = editingId ? "Редактировать сделку" : "Добавить сделку";
-  // Fill accounts
+
+  // Accounts
   if (fAccount) {
     fAccount.innerHTML = "";
     Selectors.getAccounts().forEach(a => {
@@ -143,25 +145,32 @@ function openModal(trade = null) {
     });
   }
 
-  // Prefill
-  if (fExitAt) fExitAt.value = fromISOToDDMMYYYY(trade?.exitAt || trade?.entryAt || new Date().toISOString().slice(0,10));
-  if (fSymbol) fSymbol.value = trade?.symbol || "";
-  if (fStrategy) fStrategy.value = trade?.strategy || "";
-  if (fSide) fSide.value = trade?.side || "long";
-  if (fQty) fQty.value = trade?.qty ?? 1;
-  if (fEntryPrice) fEntryPrice.value = trade?.entryPrice ?? "";
-  if (fExitPrice) fExitPrice.value = trade?.exitPrice ?? "";
-  if (fR) fR.value = trade?.r ?? "";
-  if (fPnl) fPnl.value = trade?.pnl ?? "";
-  if (fFees) fFees.value = trade?.fees ?? 0;
-  if (fTags) fTags.value = Array.isArray(trade?.tags) ? trade.tags.join(";") : (trade?.tags || "");
-  if (fNotes) fNotes.value = trade?.notes || "";
+  // Prefill (map from state model)
+  const startISO = trade?.entryAt || new Date().toISOString().slice(0,10);
+  const endISO = trade?.exitAt || trade?.entryAt || startISO;
+  if (fStartAt) fStartAt.value = fromISOToDDMMYYYY(startISO);
+  if (fEndAt) fEndAt.value = fromISOToDDMMYYYY(endISO);
+  if (fPair) fPair.value = trade?.symbol || "";
+  if (fDirection) fDirection.value = trade?.side || "long";
+  if (fSession) fSession.value = trade?.session || "ASIA";
+  if (fResult) fResult.value = trade?.result || (Number(trade?.pnl||0) > 0 ? "win" : Number(trade?.pnl||0) === 0 ? "be" : "loss");
+  if (fRR) fRR.value = trade?.r ?? 0;
+  if (fRiskPct) fRiskPct.value = trade?.riskPct ?? 0;
+  if (fRiskUsd) fRiskUsd.value = trade?.riskAmountUsd ?? 0;
+
+  // Derived
+  const rrVal = Number(fRR?.value || 0);
+  const riskPctVal = Number((fRiskPct?.value || 0));
+  const riskUsdVal = Number((fRiskUsd?.value || 0));
+  if (fRRAuto) fRRAuto.value = riskPctVal ? (rrVal / riskPctVal).toFixed(4) : "";
+  if (fProfitPct) fProfitPct.value = rrVal.toFixed(4);
+  if (fNetUsd) fNetUsd.value = (riskUsdVal * rrVal).toFixed(2);
 
   if (modalBackdrop) modalBackdrop.style.display = "block";
   if (modal) modal.style.display = "block";
 
   // focus and Esc-close
-  if (fExitAt) setTimeout(() => fExitAt.focus(), 0);
+  if (fStartAt) setTimeout(() => fStartAt.focus(), 0);
   const onEsc = (e) => { if (e.key === "Escape") { e.preventDefault(); closeModal(); document.removeEventListener("keydown", onEsc); } };
   document.addEventListener("keydown", onEsc, { once: true });
 }
@@ -173,31 +182,35 @@ function closeModal() {
 }
 
 function collectForm() {
-  const exitAtISO = toISOFromDDMMYYYY(fExitAt.value);
+  const startISO = toISOFromDDMMYYYY(fStartAt?.value);
+  const endISO = toISOFromDDMMYYYY(fEndAt?.value);
+  const rr = fRR?.value ? Number(String(fRR.value).replace(",", ".")) : 0;
+  const riskPct = fRiskPct?.value ? Number(String(fRiskPct.value).replace(",", ".")) : 0;
+  const riskUsd = fRiskUsd?.value ? Number(String(fRiskUsd.value).replace(",", ".")) : 0;
+
   return {
-    id: editingId || null, // id выдаст БД
-    accountId: fAccount.value,
-    symbol: (fSymbol.value || "").trim(),
-    strategy: (fStrategy.value || "").trim(),
-    side: fSide.value,
-    qty: Number(fQty.value) || 1,
-    entryPrice: fEntryPrice.value ? Number(String(fEntryPrice.value).replace(",", ".")) : undefined,
-    exitPrice: fExitPrice.value ? Number(String(fExitPrice.value).replace(",", ".")) : undefined,
-    r: fR.value ? Number(String(fR.value).replace(",", ".")) : 0,
-    pnl: fPnl.value ? Number(String(fPnl.value).replace(",", ".")) : 0,
-    fees: fFees.value ? Number(String(fFees.value).replace(",", ".")) : 0,
-    entryAt: exitAtISO,
-    exitAt: exitAtISO,
-    tags: (fTags.value || "").split(";").map(s => s.trim()).filter(Boolean),
-    notes: (fNotes.value || "").trim()
+    id: editingId || null,
+    accountId: fAccount?.value,
+    symbol: (fPair?.value || "").trim(),
+    side: fDirection?.value || "long",
+    session: fSession?.value || "ASIA",
+    result: fResult?.value || "be",
+    r: rr,
+    riskPct,
+    riskAmountUsd: riskUsd,
+    entryAt: startISO,
+    exitAt: endISO || startISO,
+    notes: (fNotes?.value || "").trim()
   };
 }
 
 function validateTrade(t) {
   if (!t.accountId) return "Аккаунт обязателен";
-  if (!t.symbol) return "Символ обязателен";
-  if (!t.strategy) return "Стратегия обязательна";
-  if (!t.exitAt && !t.entryAt) return "Дата (exitAt/entryAt) обязательна";
+  if (!t.symbol) return "Пара (Pair) обязательна";
+  if (!t.entryAt) return "Start date обязательна";
+  if (!["long","short"].includes(t.side)) return "Direction некорректен";
+  if (!["ASIA","FRANKFURT","LO_KZ","LUNCH","NY_KZ"].includes(t.session)) return "Session некорректен";
+  if (!["win","be","loss"].includes(t.result)) return "Result некорректен";
   return null;
 }
 /** Pagination helper */
@@ -509,6 +522,19 @@ function wireEvents() {
     } finally {
       setLoading(false);
     }
+  });
+
+  // live derived fields
+  [fRR, fRiskPct, fRiskUsd].forEach(el => {
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const rr = Number(String(fRR?.value || 0).replace(",", "."));
+      const riskPct = Number(String(fRiskPct?.value || 0).replace(",", "."));
+      const riskUsd = Number(String(fRiskUsd?.value || 0).replace(",", "."));
+      if (fRRAuto) fRRAuto.value = riskPct ? (rr / riskPct).toFixed(4) : "";
+      if (fProfitPct) fProfitPct.value = (rr || 0).toFixed(4);
+      if (fNetUsd) fNetUsd.value = (riskUsd * rr).toFixed(2);
+    });
   });
 
   if (btnDelete) btnDelete.addEventListener("click", () => {

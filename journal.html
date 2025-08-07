@@ -167,23 +167,45 @@
       <button id="modalClose" class="btn xs ghost">✕</button>
     </div>
     <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <label class="select"><span>Дата (DD-MM-YYYY)</span><input id="fExitAt" placeholder="06-08-2025"></label>
+      <label class="select"><span>Start (DD-MM-YYYY)</span><input id="fStartAt" placeholder="07-08-2025"></label>
+      <label class="select"><span>End (DD-MM-YYYY)</span><input id="fEndAt" placeholder="07-08-2025"></label>
+
       <label class="select"><span>Аккаунт</span><select id="fAccount"></select></label>
-      <label class="select"><span>Символ</span><input id="fSymbol" placeholder="ES"></label>
-      <label class="select"><span>Стратегия</span><input id="fStrategy" placeholder="Breakout"></label>
-      <label class="select"><span>Side</span>
-        <select id="fSide">
+      <label class="select"><span>Pair</span><input id="fPair" placeholder="ES, BTCUSDT..."></label>
+
+      <label class="select"><span>Direction</span>
+        <select id="fDirection">
           <option value="long" selected>long</option>
           <option value="short">short</option>
         </select>
       </label>
-      <label class="select"><span>Qty</span><input id="fQty" type="number" step="0.01" value="1"></label>
-      <label class="select"><span>Entry Price</span><input id="fEntryPrice" type="number" step="0.01"></label>
-      <label class="select"><span>Exit Price</span><input id="fExitPrice" type="number" step="0.01"></label>
-      <label class="select"><span>R</span><input id="fR" type="number" step="0.01"></label>
-      <label class="select"><span>P&L</span><input id="fPnl" type="number" step="0.01"></label>
-      <label class="select"><span>Fees</span><input id="fFees" type="number" step="0.01" value="0"></label>
-      <label class="select" style="grid-column:1/-1;"><span>Tags (“;”)</span><input id="fTags" placeholder="tag1;tag2"></label>
+      <label class="select"><span>Session</span>
+        <select id="fSession">
+          <option value="ASIA" selected>ASIA</option>
+          <option value="FRANKFURT">FRANKFURT</option>
+          <option value="LO_KZ">LO KZ</option>
+          <option value="LUNCH">LUNCH</option>
+          <option value="NY_KZ">NY KZ</option>
+        </select>
+      </label>
+
+      <label class="select"><span>Result</span>
+        <select id="fResult">
+          <option value="win">Win</option>
+          <option value="be" selected>Be</option>
+          <option value="loss">Loss</option>
+        </select>
+      </label>
+      <label class="select"><span>RR (manual)</span><input id="fRR" type="number" step="0.01" placeholder="e.g. 1.5"></label>
+
+      <label class="select"><span>Risk %</span><input id="fRiskPct" type="number" step="0.01" placeholder="e.g. 1.0"></label>
+      <label class="select"><span>Risk $</span><input id="fRiskUsd" type="number" step="0.01" placeholder="e.g. 100"></label>
+
+      <label class="select"><span>RR Auto</span><input id="fRRAuto" type="number" step="0.0001" readonly></label>
+      <label class="select"><span>Profit %</span><input id="fProfitPct" type="number" step="0.0001" readonly></label>
+
+      <label class="select"><span>Net Result $</span><input id="fNetUsd" type="number" step="0.01" readonly></label>
+
       <label class="select" style="grid-column:1/-1;"><span>Notes</span><input id="fNotes" placeholder=""></label>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--border);padding:12px 14px;">
