@@ -4,7 +4,7 @@
  * It can be safely included on pages that need the Accounts modal.
  *
  * Usage:
- *  - Include this script after auth.js to have access to window.auth if needed later.
+ *  - Include this script after auth.js or ensure window.supabaseClient is initialized.
  *  - Call window.AccountsUI.injectModal() once (e.g., on DOMContentLoaded).
  *  - Add a button with id="openAccountsBtn" (or call AccountsUI.open()) to show the modal.
  */
@@ -16,6 +16,7 @@
     const pad = (n) => String(n).padStart(2, "0");
     return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   };
+  // Prefer a pre-initialized window.supabaseClient; fall back to auth.js (window.auth.supabase)
   const getClient = () => window.supabaseClient || (window.auth && window.auth.supabase);
 
   const TEMPLATE = `
@@ -232,7 +233,19 @@
 
     async function load() {
       const client = getClient();
-      if (!client) return;
+      if (!client) {
+        listEl.innerHTML = `<li class="acc-item muted">Supabase client not initialized</li>`;
+        [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
+          if (el) el.disabled = true;
+        });
+        if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = true));
+        editorTitle.textContent = "Supabase client not initialized";
+        return;
+      }
+      [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
+        if (el) el.disabled = false;
+      });
+      if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = false));
       if (!state.userId) state.userId = await fetchUserId();
       const { data, error } = await client.from("accounts").select("*").order("created_at", { ascending: true });
       if (error) {
