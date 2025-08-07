@@ -258,23 +258,26 @@
       backdrop.hidden = true;
       backdrop.setAttribute("aria-hidden", "true");
     }
-    async function open() {
-      // backdrop may be null if injection failed or DOM changed; ensure present
+    async function openAndLoad() {
       let el = document.getElementById("accountsModalBackdrop");
       if (!el) {
         injectModal();
         el = document.getElementById("accountsModalBackdrop");
       }
-      if (!el) return; // give up silently if cannot create
+      if (!el) return;
       el.hidden = false;
       el.setAttribute("aria-hidden", "false");
-      backdrop = el; // refresh local ref
       await load();
     }
     safeOn(closeBtn, "click", close);
     safeOn(cancelBtn, "click", close);
     safeOn(backdrop, "click", (e) => {
       if (e.target === backdrop) close();
+    });
+
+    // Listen for initial-load event dispatched by AccountsUI.open()
+    document.addEventListener("accounts-do-initial-load", () => {
+      openAndLoad();
     });
 
     // List interactions
@@ -387,13 +390,18 @@
   // Public API
   window.AccountsUI = Object.assign(window.AccountsUI || {}, {
     injectModal,
-    open: () => {
-      // delegate to inner open() to ensure load() is called
+    open: async () => {
+      // Ensure modal exists
       if (!document.getElementById("accountsModalBackdrop")) injectModal();
       const b = document.getElementById("accountsModalBackdrop");
       if (!b) return;
       b.hidden = false;
       b.setAttribute("aria-hidden", "false");
+      // After visible, load data
+      try {
+        // call internal loader by dispatching custom event the modal listens to
+        document.dispatchEvent(new CustomEvent("accounts-do-initial-load"));
+      } catch {}
     },
     close: () => {
       const b = document.getElementById("accountsModalBackdrop");
@@ -406,45 +414,20 @@
 
   // Auto-inject on DOM ready (safe if included on multiple pages)
   document.addEventListener("DOMContentLoaded", () => {
-    // Do not inject immediately; inject on first open to ensure body is ready and prevent double-inject races.
+    // Bind header buttons to open the modal using the public API
     function wire() {
       const triggers = document.querySelectorAll("#openAccountsBtn");
       triggers.forEach((t) => {
         if (t.__accBound) return;
-        t.addEventListener("click", async () => {
-          if (!document.getElementById("accountsModalBackdrop")) injectModal();
-          const el = document.getElementById("accountsModalBackdrop");
-          if (!el) return;
-          el.hidden = false;
-          el.setAttribute("aria-hidden", "false");
-          // trigger initial load after open
-          try {
-            // call internal open to run load(); fallback if not available
-            if (window.AccountsUI && typeof open === "function") {
-              // no-op: local open is not accessible here; mimic by dispatching event
-            }
-            // quick init: ensure list loads at least once
-            const evt = new Event("accounts-open");
-            document.dispatchEvent(evt);
-          } catch {}
+        t.addEventListener("click", () => {
+          if (window.AccountsUI && typeof window.AccountsUI.open === "function") {
+            window.AccountsUI.open();
+          }
         });
         t.__accBound = true;
       });
     }
-
-    // initial wire
     wire();
-    // also allow other scripts to request modal injection/open
-    document.addEventListener("accounts-open", () => {
-      // ensure modal exists and kick minimal load by toggling hidden (idempotent)
-      if (!document.getElementById("accountsModalBackdrop")) injectModal();
-      const b = document.getElementById("accountsModalBackdrop");
-      if (b) {
-        b.hidden = false;
-        b.setAttribute("aria-hidden", "false");
-      }
-    });
-    // re-wire on DOM changes (header rerenders)
     const mo = new MutationObserver(() => wire());
     mo.observe(document.body, { childList: true, subtree: true });
   });
