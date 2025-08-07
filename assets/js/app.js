@@ -144,6 +144,10 @@ function hydrateSelectors() {
     { v: "YTD", t: "YTD" },
     { v: "ALL", t: "Всё время" }
   ];
+  if (!periodDropdownMenu || !periodDropdownLabel || !periodDropdown) {
+    // If period controls are missing on the page, skip hydration gracefully
+    return;
+  }
   periodDropdownMenu.innerHTML = "";
   periodOptions.forEach(opt => {
     const li = document.createElement("li");
