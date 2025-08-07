@@ -38,7 +38,9 @@ const modalBackdrop = document.getElementById("modalBackdrop");
 const modalClose = document.getElementById("modalClose");
 const modalTitle = document.getElementById("modalTitle");
 const fStartAt = document.getElementById("fStartAt");     // Start date (DD-MM-YYYY)
+const fStartTime = document.getElementById("fStartTime"); // Start time (HH:MM)
 const fEndAt = document.getElementById("fEndAt");         // End date (DD-MM-YYYY)
+const fEndTime = document.getElementById("fEndTime");     // End time (HH:MM)
 const fAccount = document.getElementById("fAccount");     // Account (select)
 const fPair = document.getElementById("fPair");           // Pair (symbol)
 const fDirection = document.getElementById("fDirection"); // long/short
@@ -114,6 +116,20 @@ function fromISOToDDMMYYYY(s) {
   const yyyy = d.getFullYear();
   return `${dd}-${mm}-${yyyy}`;
 }
+function toISOWithTime(dateDDMMYYYY, timeHHMM) {
+  const d = toISOFromDDMMYYYY(dateDDMMYYYY);
+  if (!d) return null;
+  const hhmm = /^\d{2}:\d{2}$/.test((timeHHMM || "").trim()) ? timeHHMM.trim() : "00:00";
+  return `${d}T${hhmm}:00.000Z`;
+}
+function fromISOToHHMM(s) {
+  if (!s) return "";
+  const d = new Date(s);
+  if (isNaN(d.getTime())) return "";
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
 
 /* ====================== Period menu ====================== */
 function hydratePeriodMenu() {
@@ -146,10 +162,12 @@ function openModal(trade = null) {
   }
 
   // Prefill (map from state model)
-  const startISO = trade?.entryAt || new Date().toISOString().slice(0,10);
+  const startISO = trade?.entryAt || new Date().toISOString();
   const endISO = trade?.exitAt || trade?.entryAt || startISO;
   if (fStartAt) fStartAt.value = fromISOToDDMMYYYY(startISO);
+  if (fStartTime) fStartTime.value = fromISOToHHMM(startISO) || "00:00";
   if (fEndAt) fEndAt.value = fromISOToDDMMYYYY(endISO);
+  if (fEndTime) fEndTime.value = fromISOToHHMM(endISO) || "00:00";
   if (fPair) fPair.value = trade?.symbol || "";
   if (fDirection) fDirection.value = trade?.side || "long";
   if (fSession) fSession.value = trade?.session || "ASIA";
@@ -158,13 +176,21 @@ function openModal(trade = null) {
   if (fRiskPct) fRiskPct.value = trade?.riskPct ?? 0;
   if (fRiskUsd) fRiskUsd.value = trade?.riskAmountUsd ?? 0;
 
-  // Derived
-  const rrVal = Number(fRR?.value || 0);
-  const riskPctVal = Number((fRiskPct?.value || 0));
-  const riskUsdVal = Number((fRiskUsd?.value || 0));
-  if (fRRAuto) fRRAuto.value = riskPctVal ? (rrVal / riskPctVal).toFixed(4) : "";
-  if (fProfitPct) fProfitPct.value = rrVal.toFixed(4);
-  if (fNetUsd) fNetUsd.value = (riskUsdVal * rrVal).toFixed(2);
+  // Derived (spec):
+  // Profit% = Risk% * RR (manual)
+  const rrVal = Number(String(fRR?.value || 0).replace(",", "."));
+  const riskPctVal = Number(String(fRiskPct?.value || 0).replace(",", "."));
+  const profitPctVal = (riskPctVal || 0) * (rrVal || 0);
+  // RR Auto: copy RR if provided; otherwise Profit%/Risk% (guard 0)
+  const rrAutoVal = rrVal || (riskPctVal ? (profitPctVal / riskPctVal) : 0);
+  // Net$ = Deposit * (Profit% / 100)
+  const accForDerived = Selectors.getAccounts().find(a => a.id === (fAccount?.value || Session.selectedAccountId));
+  const depositForDerived = accForDerived?.startingEquity || 0;
+  const netUsdVal = depositForDerived * (profitPctVal / 100);
+
+  if (fRRAuto) fRRAuto.value = Number(rrAutoVal || 0).toFixed(4);
+  if (fProfitPct) fProfitPct.value = Number(profitPctVal || 0).toFixed(4);
+  if (fNetUsd) fNetUsd.value = Number(netUsdVal || 0).toFixed(2);
 
   if (modalBackdrop) modalBackdrop.style.display = "block";
   if (modal) modal.style.display = "block";
@@ -182,11 +208,21 @@ function closeModal() {
 }
 
 function collectForm() {
-  const startISO = toISOFromDDMMYYYY(fStartAt?.value);
-  const endISO = toISOFromDDMMYYYY(fEndAt?.value);
+  const startISO = toISOWithTime(fStartAt?.value, fStartTime?.value);
+  const endISO = toISOWithTime(fEndAt?.value, fEndTime?.value) || startISO;
   const rr = fRR?.value ? Number(String(fRR.value).replace(",", ".")) : 0;
   const riskPct = fRiskPct?.value ? Number(String(fRiskPct.value).replace(",", ".")) : 0;
   const riskUsd = fRiskUsd?.value ? Number(String(fRiskUsd.value).replace(",", ".")) : 0;
+
+  // Derived according to spec:
+  // Profit% = Risk% * RR (manual)
+  const profitPct = (riskPct || 0) * (rr || 0);
+  // RR Auto: copy RR if provided; else Profit% / Risk% (guard 0)
+  const rrAuto = rr || (riskPct ? (profitPct / riskPct) : 0);
+  // Net$ = Deposit * (Profit% / 100), Deposit = startingEquity of selected account
+  const acc = Selectors.getAccounts().find(a => a.id === (fAccount?.value || Session.selectedAccountId));
+  const deposit = acc?.startingEquity || 0;
+  const netUsd = deposit * (profitPct / 100);
 
   return {
     id: editingId || null,
@@ -200,7 +236,9 @@ function collectForm() {
     riskAmountUsd: riskUsd,
     entryAt: startISO,
     exitAt: endISO || startISO,
-    notes: (fNotes?.value || "").trim()
+    notes: (fNotes?.value || "").trim(),
+    // Derived for UI usage (state.js compute uses pnl)
+    pnl: Number(netUsd || 0)
   };
 }
 
@@ -226,11 +264,13 @@ function renderTable(rows) {
   const pageRows = paginate(rows);
   pageRows.forEach(tr => {
     const trEl = document.createElement("tr");
+    const rr2 = Number(tr.r || 0).toFixed(2);
+    const net2 = Number(tr.pnl || 0).toFixed(2);
     trEl.innerHTML = `
       <td>${fromISOToDDMMYYYY(tr.exitAt || tr.entryAt)}</td>
       <td>${tr.symbol || ""}</td>
       <td>${tr.strategy || ""}</td>
-      <td class="${(tr.r||0) >= 0 ? "r-pos" : "r-neg"}">${(tr.r||0) >= 0 ? "+" : "−"}${Math.abs(Number(tr.r||0)).toFixed(2)}</td>
+      <td class="${(tr.r||0) >= 0 ? "r-pos" : "r-neg"}">${rr2}RR / ${net2}$</td>
       <td class="${(tr.pnl||0) >= 0 ? "r-pos" : "r-neg"}">${(tr.pnl||0) >= 0 ? "+" : "−"}${fmt.currency(Math.abs(Number(tr.pnl||0)), Selectors.getAccounts().find(a => a.id === tr.accountId)?.currency || DataStore.currency)}</td>
       <td>${(tr.notes || "").slice(0,80)}</td>
       <td style="display:flex;gap:6px;">
@@ -524,18 +564,30 @@ function wireEvents() {
     }
   });
 
-  // live derived fields
-  [fRR, fRiskPct, fRiskUsd].forEach(el => {
-    if (!el) return;
-    el.addEventListener("input", () => {
-      const rr = Number(String(fRR?.value || 0).replace(",", "."));
-      const riskPct = Number(String(fRiskPct?.value || 0).replace(",", "."));
-      const riskUsd = Number(String(fRiskUsd?.value || 0).replace(",", "."));
-      if (fRRAuto) fRRAuto.value = riskPct ? (rr / riskPct).toFixed(4) : "";
-      if (fProfitPct) fProfitPct.value = (rr || 0).toFixed(4);
-      if (fNetUsd) fNetUsd.value = (riskUsd * rr).toFixed(2);
-    });
-  });
+  // live derived fields (with account deposit)
+  const recalcDerived = () => {
+    const rr = Number(String(fRR?.value || 0).replace(",", "."));
+    const riskPct = Number(String(fRiskPct?.value || 0).replace(",", "."));
+
+    // Profit% = Risk% * RR
+    const profitPct = (riskPct || 0) * (rr || 0);
+
+    // RR Auto: if RR provided -> copy RR, else Profit%/Risk% (guard 0)
+    const rrAuto = rr || (riskPct ? (profitPct / riskPct) : 0);
+
+    // Net$ = Deposit * (Profit% / 100)
+    const acc = Selectors.getAccounts().find(a => a.id === (fAccount?.value || Session.selectedAccountId));
+    const deposit = acc?.startingEquity || 0;
+    const net = deposit * (Number(profitPct) / 100);
+
+    if (fRRAuto) fRRAuto.value = Number(rrAuto || 0).toFixed(4);
+    if (fProfitPct) fProfitPct.value = Number(profitPct || 0).toFixed(4);
+    if (fNetUsd) fNetUsd.value = Number(net || 0).toFixed(2);
+  };
+  [fRR, fRiskPct, fAccount].forEach(el => { if (el) el.addEventListener("input", recalcDerived); });
+  if (fAccount) fAccount.addEventListener("change", recalcDerived);
+  // initialize derived when opening modal
+  recalcDerived();
 
   if (btnDelete) btnDelete.addEventListener("click", () => {
     if (!editingId) { closeModal(); return; }
