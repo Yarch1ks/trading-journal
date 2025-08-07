@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Trading Journal — Accounts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    window.SUPABASE_URL = window.SUPABASE_URL || "https://bmxmtjbafnwoetwkuybj.supabase.co";
+    window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar (reuse from index) -->
+    <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+      <div class="sb-brand">
+        <div class="logo">TJ</div>
+        <div class="brand-text">
+          <div class="name">TradingJournal</div>
+          <div class="sub muted">Pro</div>
+        </div>
+        <a class="btn ghost icon" aria-label="Close menu" href="index.html">←</a>
+      </div>
+      <nav class="sb-nav">
+        <a href="index.html" class="sb-link"><span class="ico">🏠</span><span>Дашборд</span></a>
+        <a href="journal.html" class="sb-link"><span class="ico">📄</span><span>Журнал</span></a>
+        <a href="accounts.html" class="sb-link active"><span class="ico">👤</span><span>Аккаунты</span></a>
+      </nav>
+    </aside>
+
+    <div class="app-shell">
+      <header class="app-header app-header--pro">
+        <div class="ah-left">
+          <a class="icon-btn" href="index.html" title="Назад" aria-label="Назад">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 18l-6-6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <div class="branding">
+            <div class="logo">TJ</div>
+            <div class="title">
+              <div class="brand-row">
+                <span class="brand-name">TradingJournal</span>
+                <span class="brand-pro">Pro</span>
+              </div>
+              <div class="page-row">
+                <h1 id="pageTitle">Аккаунты</h1>
+                <span class="dot">•</span>
+                <span class="portfolio muted">Управление и синхронизация</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="ah-right">
+          <div class="pill live">Live Data</div>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <section class="grid two-col">
+          <div class="card">
+            <div class="card-header split">
+              <h3>Мои аккаунты</h3>
+              <div style="display:flex;gap:8px;">
+                <button id="accSyncAll" class="btn ghost">Sync All</button>
+                <button id="accAdd" class="btn">+ Создать</button>
+              </div>
+            </div>
+            <ul id="accList" class="goals-list" style="min-height:120px;">
+              <!-- accounts rendered here -->
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-header split">
+              <h3 id="editorTitle">Новый аккаунт</h3>
+              <div class="account-editor__actions" style="display:flex;gap:8px;">
+                <button id="accToggle" class="btn ghost">Disable</button>
+                <button id="accSync" class="btn ghost">Sync</button>
+                <button id="accDelete" class="btn danger">Delete</button>
+              </div>
+            </div>
+            <form id="accForm" class="form grid-2">
+              <label class="field">
+                <span>Название</span>
+                <input name="name" placeholder="My Account" required />
+              </label>
+              <label class="field">
+                <span>Биржа / Тип</span>
+                <select name="exchange">
+                  <option value="binance-futures">Binance Futures</option>
+                  <option value="binance-spot">Binance Spot</option>
+                  <option value="bybit-futures">Bybit Futures</option>
+                  <option value="bybit-spot">Bybit Spot</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Статус</span>
+                <select name="status">
+                  <option value="active">Active</option>
+                  <option value="disabled">Disabled</option>
+                  <option value="error">Error</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Стартовый баланс</span>
+                <input name="starting_balance" type="number" step="0.01" placeholder="0.00" />
+              </label>
+              <label class="field full">
+                <span>Заметки</span>
+                <textarea name="notes" rows="3" placeholder="Optional notes"></textarea>
+              </label>
+
+              <div class="form__row full end">
+                <a class="btn ghost" href="index.html">Отмена</a>
+                <button type="submit" class="btn primary">Сохранить</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer app-footer--pro">
+        <div class="af-left">
+          <div class="user-mini">
+            <div class="avatar small">A</div>
+            <div class="uinfo">
+              <div class="uname">Admin</div>
+              <div class="umail muted">admin@trading.com</div>
+            </div>
+          </div>
+        </div>
+        <div class="af-center muted">© 2025 Trading Journal Pro • Версия 2.1.0</div>
+        <div class="af-right muted">
+          Последнее обновление: <span id="lastUpdate">—</span>
+          <span class="status-dot online"></span> Соединение
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="assets/js/auth.js"></script>
+  <script>
+    // Simple page module using the same schema as modal
+    (function () {
+      const client = window.supabaseClient || (window.auth && window.auth.supabase);
+      const elList = document.getElementById('accList');
+      const form = document.getElementById('accForm');
+      const btnAdd = document.getElementById('accAdd');
+      const btnDelete = document.getElementById('accDelete');
+      const btnToggle = document.getElementById('accToggle');
+      const btnSync = document.getElementById('accSync');
+      const btnSyncAll = document.getElementById('accSyncAll');
+      const title = document.getElementById('editorTitle');
+
+      let state = { userId: null, items: [], selectedId: null };
+
+      const fmt = (d) => d ? new Date(d).toLocaleString() : '—';
+      const badge = (s) => {
+        const cls = s === 'active' ? 'success' : s === 'error' ? 'error' : 'warning';
+        return '<span class="badge '+cls+'">'+s+'</span>';
+      };
+
+      function fillForm(acc) {
+        form.elements.name.value = acc?.name || '';
+        form.elements.exchange.value = acc?.exchange || 'binance-futures';
+        form.elements.status.value = acc?.status || 'active';
+        form.elements.starting_balance.value = acc?.starting_balance ?? '';
+        form.elements.notes.value = acc?.notes || '';
+        title.textContent = acc ? 'Редактирование' : 'Новый аккаунт';
+        btnToggle.textContent = acc && acc.status === 'disabled' ? 'Enable' : 'Disable';
+      }
+
+      function renderList() {
+        elList.innerHTML = (state.items || []).map(a => `
+          <li class="goal-item ${a.status === 'error' ? 'overdue' : ''}" data-id="${a.id}">
+            <div class="goal-top">
+              <div class="goal-title">
+                <span>${a.name || '—'}</span>
+              </div>
+              <div class="goal-actions">
+                ${badge(a.status || 'active')}
+              </div>
+            </div>
+            <div class="goal-meta">
+              ${a.exchange || '—'} • last sync: ${fmt(a.last_sync_at)} • balance: ${a.starting_balance ?? '—'}
+            </div>
+          </li>
+        `).join('');
+      }
+
+      async function fetchUserId() {
+        if (!client) return null;
+        const { data: { user } } = await client.auth.getUser();
+        return user ? user.id : null;
+      }
+
+      async function load() {
+        if (!client) {
+          elList.innerHTML = '<li class="goal-item">Supabase client not initialized</li>';
+          return;
+        }
+        if (!state.userId) state.userId = await fetchUserId();
+        const { data, error } = await client.from('accounts').select('*').order('created_at', { ascending: true });
+        if (error) {
+          console.error(error);
+          return;
+        }
+        state.items = data || [];
+        if (state.items.length && !state.selectedId) state.selectedId = state.items[0].id;
+        renderList();
+        fillForm(state.items.find(a => a.id === state.selectedId) || null);
+      }
+
+      // Events
+      elList.addEventListener('click', (e) => {
+        const li = e.target.closest('li.goal-item');
+        if (!li) return;
+        state.selectedId = li.dataset.id;
+        fillForm(state.items.find(a => a.id === state.selectedId) || null);
+      });
+
+      btnAdd.addEventListener('click', () => {
+        state.selectedId = null;
+        fillForm(null);
+      });
+
+      btnSyncAll.addEventListener('click', async () => {
+        if (!client) return;
+        await client.from('accounts').update({ last_sync_at: new Date().toISOString() }).eq('user_id', state.userId);
+        await load();
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!client) return;
+        const fd = new FormData(form);
+        const payload = {
+          name: String(fd.get('name') || '').trim(),
+          exchange: String(fd.get('exchange') || ''),
+          status: String(fd.get('status') || 'active'),
+          starting_balance: fd.get('starting_balance') ? Number(fd.get('starting_balance')) : null,
+          notes: String(fd.get('notes') || '').trim(),
+        };
+        if (!payload.name) { alert('Введите название'); return; }
+
+        if (!state.selectedId) {
+          const row = { ...payload, user_id: state.userId };
+          const { data, error } = await client.from('accounts').insert(row).select('*').single();
+          if (error) return alert(error.message);
+          state.selectedId = data.id;
+        } else {
+          const { error } = await client.from('accounts').update(payload).eq('id', state.selectedId);
+          if (error) return alert(error.message);
+        }
+        await load();
+      });
+
+      btnDelete.addEventListener('click', async () => {
+        if (!client || !state.selectedId) return;
+        if (!confirm('Удалить аккаунт?')) return;
+        const { error } = await client.from('accounts').delete().eq('id', state.selectedId);
+        if (error) return alert(error.message);
+        state.selectedId = null;
+        await load();
+      });
+
+      btnToggle.addEventListener('click', async () => {
+        if (!client || !state.selectedId) return;
+        const cur = state.items.find(a => a.id === state.selectedId);
+        if (!cur) return;
+        const next = cur.status === 'disabled' ? 'active' : 'disabled';
+        const { error } = await client.from('accounts').update({ status: next }).eq('id', cur.id);
+        if (error) return alert(error.message);
+        await load();
+      });
+
+      btnSync.addEventListener('click', async () => {
+        if (!client || !state.selectedId) return;
+        const { error } = await client.rpc('account_sync', { p_id: state.selectedId });
+        if (error) return alert(error.message);
+        await load();
+      });
+
+      // bootstrap
+      (async () => {
+        // auth guard (redirect to auth if no session)
+        try {
+          const c = client;
+          if (!c) return;
+          const { data: { user } } = await c.auth.getUser();
+          if (!user) window.location.href = './auth.html';
+        } catch {}
+        await load();
+      })();
+    })();
+  </script>
+</body>
+</html>
