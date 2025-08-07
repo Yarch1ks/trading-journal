@@ -7,10 +7,12 @@ import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } 
 const themeToggle = document.getElementById("themeToggle");
 const userNameEl = document.getElementById("userName");
 
-// Custom dropdowns
-const accountDropdown = document.getElementById("accountDropdown");
-const accountDropdownLabel = document.getElementById("accountDropdownLabel");
-const accountDropdownMenu = document.getElementById("accountDropdownMenu");
+/**
+ * Header controls
+ * - Accounts dropdown was removed. Now we have a button #openAccountsBtn handled by accounts.js
+ * - Period dropdown remains.
+ */
+const openAccountsBtn = document.getElementById("openAccountsBtn"); // may be null on some pages
 const periodDropdown = document.getElementById("periodDropdown");
 const periodDropdownLabel = document.getElementById("periodDropdownLabel");
 const periodDropdownMenu = document.getElementById("periodDropdownMenu");
@@ -130,25 +132,8 @@ function init() {
 }
 
 function hydrateSelectors() {
-  // Accounts dropdown
-  accountDropdownMenu.innerHTML = "";
-  const accounts = Selectors.getAccounts();
-  const selectedAcc = accounts.find(a => a.id === Session.selectedAccountId) || accounts[0];
-  accountDropdownLabel.textContent = selectedAcc ? selectedAcc.name : "Аккаунт";
-  for (const acc of accounts) {
-    const li = document.createElement("li");
-    li.textContent = acc.name;
-    li.dataset.value = acc.id;
-    if (acc.id === Session.selectedAccountId) li.classList.add("active");
-    li.addEventListener("click", () => {
-      Session.selectedAccountId = acc.id;
-      accountDropdownLabel.textContent = acc.name;
-      [...accountDropdownMenu.children].forEach(n => n.classList.toggle("active", n.dataset.value === acc.id));
-      accountDropdown.classList.remove("open");
-      renderAll();
-    });
-    accountDropdownMenu.appendChild(li);
-  }
+  // Accounts dropdown removed: nothing to hydrate here.
+  // Selected account used from Session; switching now happens in Accounts modal (future).
 
   // Period dropdown
   const periodOptions = [
@@ -192,17 +177,15 @@ function hydrateGoals() {
 }
 
 function wireEvents() {
-  // хоткеи: A/P открыть дропдауны, T — тема, J — журнал
+  // хоткеи: P — период, T — тема, J — журнал, A — открыть модалку Accounts
   document.addEventListener("keydown", (e) => {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) return;
     if (e.key.toLowerCase() === "a") {
       e.preventDefault();
-      accountDropdown.classList.toggle("open");
-      periodDropdown.classList.remove("open");
+      if (window.AccountsUI && window.AccountsUI.open) window.AccountsUI.open();
     } else if (e.key.toLowerCase() === "p") {
       e.preventDefault();
-      periodDropdown.classList.toggle("open");
-      accountDropdown.classList.remove("open");
+      if (periodDropdown) periodDropdown.classList.toggle("open");
     } else if (e.key.toLowerCase() === "t") {
       e.preventDefault();
       toggleTheme();
@@ -211,21 +194,18 @@ function wireEvents() {
       window.location.href = "journal.html";
     }
   });
-  // dropdown toggles
-  if (accountDropdown && accountDropdown.querySelector(".dropdown-toggle")) accountDropdown.querySelector(".dropdown-toggle").addEventListener("click", (e) => {
-    e.stopPropagation();
-    accountDropdown.classList.toggle("open");
-    periodDropdown.classList.remove("open");
-  });
+  // Period dropdown toggles
   if (periodDropdown && periodDropdown.querySelector(".dropdown-toggle")) periodDropdown.querySelector(".dropdown-toggle").addEventListener("click", (e) => {
     e.stopPropagation();
     periodDropdown.classList.toggle("open");
-    accountDropdown.classList.remove("open");
   });
   document.addEventListener("click", () => {
-    if (accountDropdown) accountDropdown.classList.remove("open");
     if (periodDropdown) periodDropdown.classList.remove("open");
   });
+  // Accounts button opens modal
+  if (openAccountsBtn && window.AccountsUI && window.AccountsUI.open) {
+    openAccountsBtn.addEventListener("click", () => window.AccountsUI.open());
+  }
 
   if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 
