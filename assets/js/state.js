@@ -71,78 +71,77 @@ async function getUserId() {
 export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
   const uid = await getUserId();
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
-  let q = client.from("trades").select("*").eq("user_id", uid).order("executed_at", { ascending: false });
-  if (accountId) q = q.eq("metadata->>accountId", accountId);
+  // trades_new schema
+  let q = client
+    .from("trades_new")
+    .select("*")
+    .eq("user_id", uid)
+    .order("started_at", { ascending: false });
+  if (accountId) q = q.eq("account", accountId);
   if (limit) q = q.range(offset, offset + limit - 1);
   const { data, error } = await q;
   if (error) throw error;
-  // map DB rows to UI model
+  // map DB rows to UI model expected by journal (keep fields journal.js uses)
   return (data || []).map(r => ({
     id: r.id,
-    accountId: r.metadata?.accountId || null,
-    symbol: r.symbol,
-    strategy: r.metadata?.strategy || "",
-    qty: Number(r.qty) || 1,
-    r: r.metadata?.r ?? 0,
-    pnl: Number(r.pnl ?? 0),
-    entryAt: r.executed_at?.slice(0, 10) || null,
-    exitAt: r.executed_at?.slice(0, 10) || null,
-    fees: Number(r.fees ?? 0),
+    accountId: r.account || null,
+    symbol: r.pair || "",
+    strategy: "", // no strategy in new schema
+    qty: 1, // not used in UI KPIs now
+    r: Number(r.rr ?? 0),
+    pnl: Number(r.net_result_usd ?? 0),
+    entryAt: r.started_at ? String(r.started_at).slice(0, 10) : null,
+    exitAt: r.ended_at ? String(r.ended_at).slice(0, 10) : r.started_at ? String(r.started_at).slice(0, 10) : null,
+    fees: 0,
     notes: r.notes || "",
-    tags: Array.isArray(r.metadata?.tags) ? r.metadata.tags : []
+    tags: []
   }));
 }
 
 export async function createTrade(ui) {
   const uid = await getUserId();
+  const client = window.supabaseClient || (window.auth && window.auth.supabase);
   const row = {
     user_id: uid,
-    executed_at: ui.exitAt ? new Date(ui.exitAt).toISOString() : new Date().toISOString(),
-    symbol: ui.symbol,
-    side: (ui.side === "short" ? "sell" : "buy"),
-    qty: ui.qty ?? 1,
-    price: ui.entryPrice ?? 0,
-    fees: ui.fees ?? 0,
-    pnl: ui.pnl ?? 0,
-    notes: ui.notes || "",
-    metadata: {
-      accountId: ui.accountId || null,
-      strategy: ui.strategy || "",
-      r: ui.r ?? 0,
-      tags: ui.tags || []
-    }
+    started_at: ui.entryAt ? new Date(ui.entryAt).toISOString() : new Date().toISOString(),
+    ended_at: ui.exitAt ? new Date(ui.exitAt).toISOString() : null,
+    account: ui.accountId || "Main",
+    direction: (ui.side === "short" ? "short" : "long"),
+    session: ui.session || "ASIA",
+    pair: ui.symbol || "",
+    result: ui.result || (Number(ui.pnl || 0) > 0 ? "win" : Number(ui.pnl || 0) === 0 ? "be" : "loss"),
+    rr: ui.r ?? 0,
+    risk_pct: ui.riskPct ?? 0,
+    risk_amount_usd: ui.riskAmountUsd ?? 0,
+    notes: ui.notes || ""
   };
-  const client = window.supabaseClient || (window.auth && window.auth.supabase);
-  const { data, error } = await client.from("trades").insert(row).select().single();
+  const { data, error } = await client.from("trades_new").insert(row).select().single();
   if (error) throw error;
   return data.id;
 }
 
 export async function updateTrade(id, ui) {
-  const row = {
-    executed_at: ui.exitAt ? new Date(ui.exitAt).toISOString() : new Date().toISOString(),
-    symbol: ui.symbol,
-    side: (ui.side === "short" ? "sell" : "buy"),
-    qty: ui.qty ?? 1,
-    price: ui.entryPrice ?? 0,
-    fees: ui.fees ?? 0,
-    pnl: ui.pnl ?? 0,
-    notes: ui.notes || "",
-    metadata: {
-      accountId: ui.accountId || null,
-      strategy: ui.strategy || "",
-      r: ui.r ?? 0,
-      tags: ui.tags || []
-    }
-  };
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
-  const { error } = await client.from("trades").update(row).eq("id", id);
+  // Build patch only with provided fields to avoid CHECK violations
+  const patch = {};
+  if (ui.entryAt) patch.started_at = new Date(ui.entryAt).toISOString();
+  if (ui.exitAt !== undefined) patch.ended_at = ui.exitAt ? new Date(ui.exitAt).toISOString() : null;
+  if (ui.accountId) patch.account = ui.accountId;
+  if (ui.side) patch.direction = (ui.side === "short" ? "short" : "long");
+  if (ui.session) patch.session = ui.session;
+  if (ui.symbol) patch.pair = ui.symbol;
+  if (ui.result) patch.result = ui.result;
+  if (ui.r !== undefined) patch.rr = ui.r ?? 0;
+  if (ui.riskPct !== undefined) patch.risk_pct = ui.riskPct ?? 0;
+  if (ui.riskAmountUsd !== undefined) patch.risk_amount_usd = ui.riskAmountUsd ?? 0;
+  if (ui.notes !== undefined) patch.notes = ui.notes || "";
+  const { error } = await client.from("trades_new").update(patch).eq("id", id);
   if (error) throw error;
 }
 
 export async function deleteTrade(id) {
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
-  const { error } = await client.from("trades").delete().eq("id", id);
+  const { error } = await client.from("trades_new").delete().eq("id", id);
   if (error) throw error;
 }
 
