@@ -419,30 +419,39 @@
   });
 
   // Auto-inject on DOM ready (safe if included on multiple pages)
-  document.addEventListener("DOMContentLoaded", () => {
-    // Bind header buttons to open the modal using the public API
-    function wire() {
-      const triggers = document.querySelectorAll("#openAccountsBtn");
-      triggers.forEach((t) => {
-        if (t.__accBound) return;
-        t.addEventListener("click", async () => {
-          console.debug("Accounts: button click");
-          if (window.AccountsUI && typeof window.AccountsUI.open === "function") {
-            await window.AccountsUI.open();
-          } else {
-            // fallback: force inject and load
-            if (!document.getElementById("accountsModalBackdrop")) injectModal();
-            if (window.AccountsUI && typeof window.AccountsUI._openAndLoad === "function") {
-              await window.AccountsUI._openAndLoad();
-            }
+  function wire() {
+    const triggers = document.querySelectorAll("#openAccountsBtn");
+    triggers.forEach((t) => {
+      if (t.__accBound) return;
+      t.addEventListener("click", async () => {
+        console.debug("Accounts: button click");
+        if (window.AccountsUI && typeof window.AccountsUI.open === "function") {
+          await window.AccountsUI.open();
+        } else {
+          // fallback: force inject and load
+          if (!document.getElementById("accountsModalBackdrop")) injectModal();
+          if (window.AccountsUI && typeof window.AccountsUI._openAndLoad === "function") {
+            await window.AccountsUI._openAndLoad();
           }
-        });
-        t.__accBound = true;
+        }
       });
-      console.debug("Accounts: wire complete, buttons =", triggers.length);
-    }
+      t.__accBound = true;
+    });
+    console.debug("Accounts: wire complete, buttons =", triggers.length);
+  }
+
+  let wired = false;
+  function init() {
+    if (wired) return;
+    wired = true;
     wire();
     const mo = new MutationObserver(() => wire());
     mo.observe(document.body, { childList: true, subtree: true });
-  });
+  }
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    init();
+  } else {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  }
 })();
