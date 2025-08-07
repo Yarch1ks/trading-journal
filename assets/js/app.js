@@ -202,10 +202,10 @@ function wireEvents() {
   document.addEventListener("click", () => {
     if (periodDropdown) periodDropdown.classList.remove("open");
   });
-  // Accounts button opens modal
-  if (openAccountsBtn && window.AccountsUI && window.AccountsUI.open) {
-    openAccountsBtn.addEventListener("click", () => window.AccountsUI.open());
-  }
+  // Accounts button is wired in accounts.js
+  // if (openAccountsBtn && window.AccountsUI && window.AccountsUI.open) {
+  //   openAccountsBtn.addEventListener("click", () => window.AccountsUI.open());
+  // }
 
   if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 
