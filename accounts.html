@@ -88,13 +88,8 @@
                 <input name="name" placeholder="My Account" required />
               </label>
               <label class="field">
-                <span>Биржа / Тип</span>
-                <select name="exchange">
-                  <option value="binance-futures">Binance Futures</option>
-                  <option value="binance-spot">Binance Spot</option>
-                  <option value="bybit-futures">Bybit Futures</option>
-                  <option value="bybit-spot">Bybit Spot</option>
-                </select>
+                <span>Биржа</span>
+                <input name="exchange" placeholder="например: Binance Futures" />
               </label>
               <label class="field">
                 <span>Статус</span>
@@ -165,7 +160,7 @@
 
       function fillForm(acc) {
         form.elements.name.value = acc?.name || '';
-        form.elements.exchange.value = acc?.exchange || 'binance-futures';
+        form.elements.exchange.value = acc?.exchange || '';
         form.elements.status.value = acc?.status || 'active';
         form.elements.starting_balance.value = acc?.starting_balance ?? '';
         form.elements.notes.value = acc?.notes || '';
@@ -239,7 +234,7 @@
         const fd = new FormData(form);
         const payload = {
           name: String(fd.get('name') || '').trim(),
-          exchange: String(fd.get('exchange') || ''),
+          exchange: String(fd.get('exchange') || '').trim(),
           status: String(fd.get('status') || 'active'),
           starting_balance: fd.get('starting_balance') ? Number(fd.get('starting_balance')) : null,
           notes: String(fd.get('notes') || '').trim(),
