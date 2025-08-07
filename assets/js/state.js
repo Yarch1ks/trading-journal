@@ -13,25 +13,8 @@ export const DataStore = {
     { id: "acc-1", name: "Main Futures", currency: "USD", startingEquity: 10000 },
     { id: "acc-2", name: "Crypto Swing", currency: "USD", startingEquity: 5000 }
   ],
-  // trades minimal schema; extendable
-  trades: [
-    // account 1 (sample over months)
-    { id: "t1", accountId: "acc-1", symbol: "ES", strategy: "Breakout", qty: 1, r: 1.2, pnl: 240, entryAt: "2025-01-10", exitAt: "2025-01-10" },
-    { id: "t2", accountId: "acc-1", symbol: "NQ", strategy: "Pullback", qty: 1, r: -0.8, pnl: -160, entryAt: "2025-01-12", exitAt: "2025-01-12" },
-    { id: "t3", accountId: "acc-1", symbol: "ES", strategy: "Breakout", qty: 1, r: 0.6, pnl: 120, entryAt: "2025-02-05", exitAt: "2025-02-05" },
-    { id: "t4", accountId: "acc-1", symbol: "CL", strategy: "Trend", qty: 1, r: -1.4, pnl: -280, entryAt: "2025-02-11", exitAt: "2025-02-11" },
-    { id: "t5", accountId: "acc-1", symbol: "ES", strategy: "Breakout", qty: 1, r: 1.8, pnl: 360, entryAt: "2025-03-03", exitAt: "2025-03-03" },
-    { id: "t6", accountId: "acc-1", symbol: "GC", strategy: "Reversal", qty: 1, r: 0.4, pnl: 80, entryAt: "2025-03-18", exitAt: "2025-03-18" },
-    { id: "t7", accountId: "acc-1", symbol: "NQ", strategy: "Pullback", qty: 1, r: -0.5, pnl: -100, entryAt: "2025-04-02", exitAt: "2025-04-02" },
-    { id: "t8", accountId: "acc-1", symbol: "ES", strategy: "Breakout", qty: 1, r: 2.2, pnl: 440, entryAt: "2025-04-20", exitAt: "2025-04-20" },
-    { id: "t9", accountId: "acc-1", symbol: "ES", strategy: "Breakout", qty: 1, r: -0.9, pnl: -180, entryAt: "2025-05-06", exitAt: "2025-05-06" },
-    { id: "t10", accountId: "acc-1", symbol: "CL", strategy: "Trend", qty: 1, r: 1.0, pnl: 200, entryAt: "2025-05-21", exitAt: "2025-05-21" },
-    // account 2
-    { id: "t11", accountId: "acc-2", symbol: "BTCUSDT", strategy: "Swing", qty: 0.1, r: 1.6, pnl: 160, entryAt: "2025-02-02", exitAt: "2025-02-20" },
-    { id: "t12", accountId: "acc-2", symbol: "ETHUSDT", strategy: "Swing", qty: 1.0, r: -0.7, pnl: -70, entryAt: "2025-03-01", exitAt: "2025-03-10" },
-    { id: "t13", accountId: "acc-2", symbol: "BTCUSDT", strategy: "Swing", qty: 0.2, r: 0.9, pnl: 90, entryAt: "2025-04-01", exitAt: "2025-04-18" },
-    { id: "t14", accountId: "acc-2", symbol: "SOLUSDT", strategy: "Breakout", qty: 10, r: -1.2, pnl: -120, entryAt: "2025-05-08", exitAt: "2025-05-25" }
-  ],
+  // trades теперь загружаются из Supabase
+  trades: [],
   goals: [
     { id: "g1", title: "Win Rate 55%+", target: 55, unit: "%", progress: 48, due: "2025-09-01" },
     { id: "g2", title: "Monthly P&L +$1,000", target: 1000, unit: "USD", progress: 620, due: "2025-08-31" },
@@ -72,6 +55,87 @@ export const Selectors = {
     if (g) g.progress = progress;
   }
 };
+
+// -------- Supabase CRUD wrappers (public.trades) --------
+async function getUserId() {
+  const { data, error } = await window.supabase.auth.getUser();
+  if (error) throw error;
+  return data?.user?.id;
+}
+
+export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
+  const uid = await getUserId();
+  let q = window.supabase.from("trades").select("*").eq("user_id", uid).order("executed_at", { ascending: false });
+  if (accountId) q = q.eq("metadata->>accountId", accountId);
+  if (limit) q = q.range(offset, offset + limit - 1);
+  const { data, error } = await q;
+  if (error) throw error;
+  // map DB rows to UI model
+  return (data || []).map(r => ({
+    id: r.id,
+    accountId: r.metadata?.accountId || null,
+    symbol: r.symbol,
+    strategy: r.metadata?.strategy || "",
+    qty: Number(r.qty) || 1,
+    r: r.metadata?.r ?? 0,
+    pnl: Number(r.pnl ?? 0),
+    entryAt: r.executed_at?.slice(0, 10) || null,
+    exitAt: r.executed_at?.slice(0, 10) || null,
+    fees: Number(r.fees ?? 0),
+    notes: r.notes || "",
+    tags: Array.isArray(r.metadata?.tags) ? r.metadata.tags : []
+  }));
+}
+
+export async function createTrade(ui) {
+  const uid = await getUserId();
+  const row = {
+    user_id: uid,
+    executed_at: ui.exitAt ? new Date(ui.exitAt).toISOString() : new Date().toISOString(),
+    symbol: ui.symbol,
+    side: (ui.side === "short" ? "sell" : "buy"),
+    qty: ui.qty ?? 1,
+    price: ui.entryPrice ?? 0,
+    fees: ui.fees ?? 0,
+    pnl: ui.pnl ?? 0,
+    notes: ui.notes || "",
+    metadata: {
+      accountId: ui.accountId || null,
+      strategy: ui.strategy || "",
+      r: ui.r ?? 0,
+      tags: ui.tags || []
+    }
+  };
+  const { data, error } = await window.supabase.from("trades").insert(row).select().single();
+  if (error) throw error;
+  return data.id;
+}
+
+export async function updateTrade(id, ui) {
+  const row = {
+    executed_at: ui.exitAt ? new Date(ui.exitAt).toISOString() : new Date().toISOString(),
+    symbol: ui.symbol,
+    side: (ui.side === "short" ? "sell" : "buy"),
+    qty: ui.qty ?? 1,
+    price: ui.entryPrice ?? 0,
+    fees: ui.fees ?? 0,
+    pnl: ui.pnl ?? 0,
+    notes: ui.notes || "",
+    metadata: {
+      accountId: ui.accountId || null,
+      strategy: ui.strategy || "",
+      r: ui.r ?? 0,
+      tags: ui.tags || []
+    }
+  };
+  const { error } = await window.supabase.from("trades").update(row).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteTrade(id) {
+  const { error } = await window.supabase.from("trades").delete().eq("id", id);
+  if (error) throw error;
+}
 
 export function computeKpis(trades, startingEquity, currency) {
   const totalPnl = sum(trades, t => t.pnl);

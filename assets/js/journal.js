@@ -1,8 +1,6 @@
-import { DataStore, Session, Selectors } from "./state.js";
+import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade } from "./state.js";
 import { fmt } from "./utils.js";
 
-// Config: date format DD-MM-YYYY with LocalStorage persistence
-const STORAGE_KEY = "tj.trades";
 const DATE_FORMAT = "DD-MM-YYYY";
 
 // DOM
@@ -63,34 +61,35 @@ let pageSize = parseInt(pageSizeSel.value, 10) || 50;
 let editingId = null;
 let inited = false;
 
-/* ============== Persistence helpers (LocalStorage) ============== */
-function loadFromStorage() {
+/* ============== Supabase sync helpers ============== */
+async function refreshTrades() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const arr = JSON.parse(raw);
-    if (!Array.isArray(arr)) return;
-    const byId = new Map(DataStore.trades.map(t => [t.id, t]));
-    arr.forEach(t => {
-      if (!t || !t.id) return;
-      if (byId.has(t.id)) Object.assign(byId.get(t.id), t);
-      else DataStore.trades.push(t);
+    setLoading(true);
+    const rows = await listTrades({
+      accountId: Session.selectedAccountId,
+      limit: Number(pageSizeSel?.value) || 50,
+      offset: pageIdx * (Number(pageSizeSel?.value) || 50)
     });
+    DataStore.trades = rows;
+    renderAll();
   } catch (e) {
-    console.warn("loadFromStorage error", e);
+    console.error("Failed to load trades from Supabase", e);
+    toast("Не удалось загрузить сделки", "error");
+  } finally {
+    setLoading(false);
   }
 }
 
-function persistToStorage() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(DataStore.trades));
-  } catch (e) {
-    console.warn("persistToStorage error", e);
-  }
+function setLoading(isLoading) {
+  if (btnAdd) btnAdd.disabled = isLoading;
+  if (btnImport) btnImport.disabled = isLoading;
+  if (btnExport) btnExport.disabled = isLoading;
+  if (nextPageBtn) nextPageBtn.disabled = isLoading;
+  if (prevPageBtn) prevPageBtn.disabled = isLoading;
 }
 
-function genId(prefix = "t") {
-  return prefix + Math.random().toString(36).slice(2, 9);
+function toast(msg, type = "info") {
+  console[type === "error" ? "error" : "log"](msg);
 }
 
 /* ====================== Date utils (DD-MM-YYYY) ====================== */
@@ -176,7 +175,7 @@ function closeModal() {
 function collectForm() {
   const exitAtISO = toISOFromDDMMYYYY(fExitAt.value);
   return {
-    id: editingId || genId("t"),
+    id: editingId || null, // id выдаст БД
     accountId: fAccount.value,
     symbol: (fSymbol.value || "").trim(),
     strategy: (fStrategy.value || "").trim(),
@@ -227,13 +226,17 @@ function renderTable(rows) {
       </td>
     `;
     trEl.querySelector(".act-edit").addEventListener("click", () => openModal(tr));
-    trEl.querySelector(".act-del").addEventListener("click", () => {
+    trEl.querySelector(".act-del").addEventListener("click", async () => {
       if (!confirm("Удалить сделку?")) return;
-      const idx = DataStore.trades.findIndex(x => x.id === tr.id);
-      if (idx >= 0) {
-        DataStore.trades.splice(idx, 1);
-        persistToStorage();
-        renderAll();
+      try {
+        setLoading(true);
+        await deleteTrade(tr.id);
+        await refreshTrades();
+      } catch (e) {
+        console.error("Delete trade failed", e);
+        toast("Ошибка удаления сделки", "error");
+      } finally {
+        setLoading(false);
       }
     });
     tblBody.appendChild(trEl);
@@ -487,15 +490,25 @@ function wireEvents() {
   if (modalBackdrop) modalBackdrop.addEventListener("click", closeModal);
   if (btnAdd) btnAdd.addEventListener("click", () => openModal());
 
-  if (btnSave) btnSave.addEventListener("click", () => {
+  if (btnSave) btnSave.addEventListener("click", async () => {
     const t = collectForm();
     const err = validateTrade(t);
     if (err) { alert(err); return; }
-    const idx = DataStore.trades.findIndex(x => x.id === t.id);
-    if (idx >= 0) DataStore.trades[idx] = t; else DataStore.trades.push(t);
-    persistToStorage();
-    closeModal();
-    renderAll();
+    try {
+      setLoading(true);
+      if (editingId) {
+        await updateTrade(editingId, t);
+      } else {
+        await createTrade(t);
+      }
+      closeModal();
+      await refreshTrades();
+    } catch (e) {
+      console.error("Save trade failed", e);
+      toast("Ошибка сохранения сделки", "error");
+    } finally {
+      setLoading(false);
+    }
   });
 
   if (btnDelete) btnDelete.addEventListener("click", () => {
@@ -546,7 +559,7 @@ function wireEvents() {
   }
 }
 
-function init() {
+async function init() {
   if (inited) return;
   inited = true;
   // Self-test badge
@@ -584,7 +597,8 @@ function init() {
       window.persistToStorage = () => {};
     }
 
-    loadFromStorage();
+    // первичная загрузка из Supabase
+    await refreshTrades();
 
     // Safe hydration for dropdowns
     if (accMenu && accLbl && accDD) {
