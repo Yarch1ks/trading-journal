@@ -204,7 +204,7 @@
     injectStylesOnce();
     const wrapper = document.createElement("div");
     wrapper.innerHTML = TEMPLATE;
-    const node = wrapper.firstChild;
+    const node = wrapper.firstElementChild;
     document.body.appendChild(node);
     console.debug("Accounts: injected backdrop =", !!document.getElementById("accountsModalBackdrop"));
 
