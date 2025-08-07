@@ -1,14 +1,28 @@
 <!DOCTYPE html>
-<script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+<!-- Load Supabase SDK first -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<!-- Define env BEFORE auth.js to allow client creation -->
 <script>
-  // Используем единый клиент из assets/js/auth.js (window.supabaseClient)
   window.SUPABASE_URL = window.SUPABASE_URL || "https://bmxmtjbafnwoetwkuybj.supabase.co";
   window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
+</script>
+<!-- Force-create a global client early in case auth.js fails to execute for any reason -->
+<script>
+  try {
+    if (window.supabase && !window.supabaseClient) {
+      window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    }
+  } catch (e) {
+    console.error("Early Supabase bootstrap failed", e);
+  }
+</script>
+<!-- Redirect to auth if no user -->
+<script>
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      const client = window.supabaseClient || (window.auth && window.auth.supabase);
-      if (!client) return;
-      const { data: { user } } = await client.auth.getUser();
+      const c = window.supabaseClient || (window.auth && window.auth.supabase);
+      if (!c) return;
+      const { data: { user } } = await c.auth.getUser();
       if (!user) window.location.href = './auth.html';
     } catch (e) {
       window.location.href = './auth.html';
@@ -211,6 +225,8 @@
     </footer>
   </div>
 
+  <!-- Скрипты, зависящие от Supabase, должны грузиться после SDK и без defer -->
+  <script src="assets/js/auth.js"></script>
   <script type="module" src="assets/js/app.js"></script>
   <script src="assets/js/accounts.js"></script>
 </body>

@@ -17,9 +17,21 @@
     return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
   };
   // Prefer a pre-initialized window.supabaseClient; fall back to auth.js (window.auth.supabase)
-  const getClient = () => window.supabaseClient || (window.auth && window.auth.supabase);
+  const getClient = () => {
+    // Prefer global client created by auth.js; if SDK loaded but auth.js not yet executed, create a lazy fallback
+    if (window.supabaseClient) return window.supabaseClient;
+    if (window.auth && window.auth.supabase) return window.auth.supabase;
+    if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+      try {
+        window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        return window.supabaseClient;
+      } catch (_) {}
+    }
+    return null;
+  };
 
-  const TEMPLATE = `
+  // Note: use a wrapper to avoid firstChild skipping due to whitespace
+  const TEMPLATE = `<!--accounts-root-->
   <div class="modal-backdrop" id="accountsModalBackdrop" hidden aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="accountsModalTitle">
       <div class="modal__header">
@@ -148,7 +160,9 @@
     const style = document.createElement("style");
     style.id = "accountsModalStyles";
     style.textContent = STYLES;
-    document.head.appendChild(style);
+    // Ensure head exists; if not, attach to documentElement as fallback
+    const head = document.head || document.getElementsByTagName("head")[0] || document.documentElement;
+    head.appendChild(style);
   }
 
   async function fetchUserId() {
@@ -240,6 +254,8 @@
         });
         if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = true));
         editorTitle.textContent = "Supabase client not initialized";
+        // Try lazy init again shortly in case auth.js loads late
+        setTimeout(load, 300);
         return;
       }
       [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
@@ -275,8 +291,10 @@
     }
 
     function close() {
-      backdrop.hidden = true;
-      backdrop.setAttribute("aria-hidden", "true");
+      const b = document.getElementById("accountsModalBackdrop");
+      if (!b) return;
+      b.hidden = true;
+      b.setAttribute("aria-hidden", "true");
     }
     async function openAndLoad() {
       console.debug("Accounts: openAndLoad");
@@ -296,8 +314,11 @@
     }
     safeOn(closeBtn, "click", close);
     safeOn(cancelBtn, "click", close);
-    safeOn(backdrop, "click", (e) => {
-      if (e.target === backdrop) close();
+    // Use document-level click handler to avoid closed-over stale backdrop ref (which can cause Illegal invocation)
+    document.addEventListener("click", (e) => {
+      const b = document.getElementById("accountsModalBackdrop");
+      if (!b || b.hidden) return;
+      if (e.target === b) close();
     });
 
     // expose a bound loader to call from public API without custom events
@@ -424,10 +445,9 @@
     },
     close: () => {
       const b = document.getElementById("accountsModalBackdrop");
-      if (b) {
-        b.hidden = true;
-        b.setAttribute("aria-hidden", "true");
-      }
+      if (!b) return;
+      b.hidden = true;
+      b.setAttribute("aria-hidden", "true");
     },
   });
 

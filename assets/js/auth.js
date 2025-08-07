@@ -10,6 +10,9 @@
  */
 
 (function () {
+  // Guard against double-inclusion; also ensure we expose window.auth even if something later fails
+  if (window.__authInit) return;
+  window.__authInit = true;
   // Ensure SDK loaded
   if (!window.supabase) {
     console.error("Supabase SDK not loaded");
@@ -20,9 +23,13 @@
     return;
   }
 
-  const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-  // Expose client globally so other modules (state.js) can use it
-  window.supabaseClient = supabase;
+  // Create global client (idempotent)
+  try {
+    window.supabaseClient = window.supabaseClient || window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  } catch (e) {
+    console.error("Supabase createClient failed", e);
+  }
+  const supabase = window.supabaseClient;
 
   // Генерация email из никнейма по правилу: nickname@example.com (валидный домен)
   // Приоритетно берём window.AUTH_EMAIL_SUFFIX (задано в auth.html), иначе fallback на example.com
@@ -106,10 +113,11 @@
     return user;
   }
 
-  // Expose API
-  window.auth = { supabase, signUp, signIn, signOut, getUser };
+  // Expose API globally early and then assign functions
+  window.auth = Object.assign(window.auth || {}, { supabase, signUp, signIn, signOut, getUser });
 
   // Wire up forms if present (auth.html)
+  // If this script runs on pages without forms (index/journal), we still want window.auth available.
   document.addEventListener("DOMContentLoaded", () => {
     const loginForm = document.getElementById("login-form");
     const signupForm = document.getElementById("signup-form");
