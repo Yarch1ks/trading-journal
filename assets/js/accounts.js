@@ -312,13 +312,24 @@
       el.setAttribute("aria-hidden", "false");
       await load();
     }
-    safeOn(closeBtn, "click", close);
-    safeOn(cancelBtn, "click", close);
-    // Use document-level click handler to avoid closed-over stale backdrop ref (which can cause Illegal invocation)
+    // Close handlers (ensure they always work even after re-injection)
     document.addEventListener("click", (e) => {
       const b = document.getElementById("accountsModalBackdrop");
       if (!b || b.hidden) return;
-      if (e.target === b) close();
+      const target = e.target;
+      // backdrop click to close
+      if (target === b) {
+        close();
+        return;
+      }
+      // header X button
+      if (target && (target.id === "accountsCloseBtn" || target.closest && target.closest("#accountsCloseBtn"))) {
+        close();
+      }
+      // footer Cancel button
+      if (target && (target.id === "accountCancelBtn" || target.closest && target.closest("#accountCancelBtn"))) {
+        close();
+      }
     });
 
     // expose a bound loader to call from public API without custom events

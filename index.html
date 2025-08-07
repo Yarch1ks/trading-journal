@@ -42,14 +42,54 @@
 </head>
 <body>
   <div id="app">
-    <header class="app-header">
-      <div class="branding">
+    <!-- SPA Layout: Sidebar + Content -->
+    <aside id="sidebar" class="sidebar" aria-label="Main navigation">
+      <div class="sb-brand">
         <div class="logo">TJ</div>
-        <div class="title">
-          <h1>Trading Journal</h1>
-          <span class="subtitle">Главная</span>
+        <div class="brand-text">
+          <div class="name">TradingJournal</div>
+          <div class="sub muted">Pro</div>
         </div>
+        <button id="sbClose" class="btn ghost icon" aria-label="Close menu">✕</button>
       </div>
+      <nav class="sb-nav">
+        <a href="#/dashboard" data-route class="sb-link">
+          <span class="ico">▦</span>
+          <span>Дашборд</span>
+        </a>
+        <a href="#/journal" data-route class="sb-link">
+          <span class="ico">📄</span>
+          <span>Журнал</span>
+        </a>
+        <a href="#/analytics" data-route class="sb-link">
+          <span class="ico">📈</span>
+          <span>Аналитика</span>
+        </a>
+        <a href="#/calendar" data-route class="sb-link">
+          <span class="ico">🗓</span>
+          <span>Календарь</span>
+        </a>
+        <a href="#/goals" data-route class="sb-link">
+          <span class="ico">🎯</span>
+          <span>Цели</span>
+        </a>
+        <a href="#/accounts" data-route class="sb-link">
+          <span class="ico">👤</span>
+          <span>Аккаунты</span>
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-shell">
+      <header class="app-header">
+        <button id="sbBurger" class="btn ghost icon" aria-label="Open menu">☰</button>
+        <div class="branding">
+          <div class="logo">TJ</div>
+          <div class="title">
+            <h1 id="pageTitle">Trading Journal</h1>
+            <span class="subtitle" id="pageSubtitle">Главная</span>
+          </div>
+        </div>
 <div class="actions">
   <div class="selects">
     <button id="openAccountsBtn" class="btn ghost">Accounts</button>
@@ -218,6 +258,9 @@
         </div>
       </section>
     </main>
+
+    <!-- SPA Content outlet -->
+    <div id="view" class="view"></div>
 
     <footer class="app-footer">
       <span>© Trading Journal</span>

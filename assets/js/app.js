@@ -3,6 +3,117 @@ import { renderRecentTrades, renderGoals, setKpi } from "./components.js";
 import { fmt } from "./utils.js";
 import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } from "./charts.js";
 
+/**
+ * Minimal hash-based router + sidebar wiring for SPA
+ * Pages: #/dashboard (default), #/journal, #/analytics, #/calendar, #/goals, #/accounts
+ */
+const viewEl = document.getElementById("view");
+const sidebar = document.getElementById("sidebar");
+const sbBurger = document.getElementById("sbBurger");
+const sbClose = document.getElementById("sbClose");
+const pageTitle = document.getElementById("pageTitle");
+const pageSubtitle = document.getElementById("pageSubtitle");
+
+// Sidebar controls
+if (sbBurger) sbBurger.addEventListener("click", () => {
+  sidebar?.classList.add("open");
+  document.documentElement.classList.add("sb-open");
+});
+if (sbClose) sbClose.addEventListener("click", () => {
+  sidebar?.classList.remove("open");
+  document.documentElement.classList.remove("sb-open");
+});
+document.addEventListener("click", (e) => {
+  const open = document.documentElement.classList.contains("sb-open");
+  if (!open) return;
+  if (sidebar && !sidebar.contains(e.target) && e.target !== sbBurger) {
+    sidebar.classList.remove("open");
+    document.documentElement.classList.remove("sb-open");
+  }
+});
+// highlight active link
+function setActiveNav(path) {
+  document.querySelectorAll(".sb-link").forEach(a => {
+    const href = a.getAttribute("href") || "";
+    a.classList.toggle("active", href === "#/" + path);
+  });
+}
+function mountPage(path) {
+  setActiveNav(path);
+  switch (path) {
+    case "journal":
+      pageTitle && (pageTitle.textContent = "Журнал");
+      pageSubtitle && (pageSubtitle.textContent = "Сделки и записи");
+      // For now keep legacy journal.html link until ported
+      viewEl && (viewEl.innerHTML = `
+        <div class="card">
+          <div class="card-header split">
+            <h3>Журнал</h3>
+            <a class="btn" href="journal.html">Открыть (временная ссылка)</a>
+          </div>
+          <div class="muted" style="padding:12px;">Страница журнала будет перенесена в SPA в отдельной итерации.</div>
+        </div>
+      `);
+      break;
+    case "analytics":
+      pageTitle && (pageTitle.textContent = "Аналитика");
+      pageSubtitle && (pageSubtitle.textContent = "обсудим позже");
+      viewEl && (viewEl.innerHTML = `<div class="card"><div class="card-header"><h3>Аналитика</h3></div><div class="muted" style="padding:12px;">Заглушка.</div></div>`);
+      break;
+    case "calendar":
+      pageTitle && (pageTitle.textContent = "Календарь");
+      pageSubtitle && (pageSubtitle.textContent = "обсудим позже");
+      viewEl && (viewEl.innerHTML = `<div class="card"><div class="card-header"><h3>Календарь</h3></div><div class="muted" style="padding:12px;">Заглушка.</div></div>`);
+      break;
+    case "goals":
+      pageTitle && (pageTitle.textContent = "Цели");
+      pageSubtitle && (pageSubtitle.textContent = "прогресс и задачи");
+      viewEl && (viewEl.innerHTML = `<div class="card"><div class="card-header"><h3>Цели</h3></div><ul id="goalsListSpa" class="goals-list"></ul><div style="padding:12px;"><button id="addGoalBtnSpa" class="btn ghost">+ Цель</button></div></div>`);
+      // simple reuse of existing renderer
+      const gl = document.getElementById("goalsListSpa");
+      renderGoals(gl, Selectors.getGoals(), {
+        onProgressChange: (id, value) => {
+          Selectors.updateGoalProgress(id, value);
+          renderGoals(gl, Selectors.getGoals(), { onProgressChange: (id2, v2) => Selectors.updateGoalProgress(id2, v2) });
+        }
+      });
+      const addGoalBtnSpa = document.getElementById("addGoalBtnSpa");
+      if (addGoalBtnSpa) addGoalBtnSpa.addEventListener("click", () => {
+        const title = prompt("Название цели");
+        if (!title) return;
+        const target = Number(prompt("Целевое значение (число)")) || 0;
+        const unit = prompt("Единица (%, USD, trades, ...)", "%") || "%";
+        const due = prompt("Дедлайн (YYYY-MM-DD)", "2025-12-31") || "2025-12-31";
+        const goal = { id: "g" + Math.random().toString(36).slice(2,9), title, target, unit, progress: 0, due };
+        Selectors.addGoal(goal);
+        renderGoals(gl, Selectors.getGoals(), { onProgressChange: (id2, v2) => Selectors.updateGoalProgress(id2, v2) });
+      });
+      break;
+    case "accounts":
+      pageTitle && (pageTitle.textContent = "Аккаунты");
+      pageSubtitle && (pageSubtitle.textContent = "управление и синхронизация");
+      viewEl && (viewEl.innerHTML = `<div class="card"><div class="card-header split"><h3>Аккаунты</h3><button id="openAccountsBtnSpa" class="btn">Открыть менеджер</button></div><div class="muted" style="padding:12px;">Для CRUD используйте модальное окно.</div></div>`);
+      document.getElementById("openAccountsBtnSpa")?.addEventListener("click", () => window.AccountsUI?.open && window.AccountsUI.open());
+      // also auto-open once when visiting accounts route
+      setTimeout(()=> window.AccountsUI?.open && window.AccountsUI.open(), 0);
+      break;
+    case "dashboard":
+    default:
+      pageTitle && (pageTitle.textContent = "Trading Journal");
+      pageSubtitle && (pageSubtitle.textContent = "Главная");
+      viewEl && (viewEl.innerHTML = "");
+      // dashboard widgets already present in DOM below header
+      break;
+  }
+}
+function route() {
+  const hash = window.location.hash || "#/dashboard";
+  const path = hash.replace(/^#\//, "") || "dashboard";
+  mountPage(path);
+}
+window.addEventListener("hashchange", route);
+document.addEventListener("DOMContentLoaded", route);
+
 // DOM refs
 const themeToggle = document.getElementById("themeToggle");
 const userNameEl = document.getElementById("userName");
@@ -518,3 +629,4 @@ function renderKpiSpark(id, labels, values) {
 }
 
 init();
+route();
