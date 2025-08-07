@@ -9,10 +9,8 @@ import { bucketizeByPeriod, filterByDateRange, groupBy, sum } from "./utils.js";
 
 export const DataStore = {
   currency: "USD",
-  accounts: [
-    { id: "acc-1", name: "Main Futures", currency: "USD", startingEquity: 10000 },
-    { id: "acc-2", name: "Crypto Swing", currency: "USD", startingEquity: 5000 }
-  ],
+  // Реальный список аккаунтов будет загружен из Supabase
+  accounts: [],
   // trades теперь загружаются из Supabase
   trades: [],
   goals: [
@@ -25,7 +23,7 @@ export const DataStore = {
 
 // UI session state
 export const Session = {
-  selectedAccountId: DataStore.accounts[0]?.id || null,
+  selectedAccountId: null,
   period: "ALL",
   notes: DataStore.notes
 };
@@ -33,6 +31,40 @@ export const Session = {
 // Selectors and aggregations
 export const Selectors = {
   getAccounts() {
+    return DataStore.accounts;
+  },
+  // Явная подгрузка аккаунтов из Supabase и обновление Session/DataStore
+  async refreshAccountsFromSupabase() {
+    const client = window.supabaseClient || (window.auth && window.auth.supabase);
+    if (!client) throw new Error("Supabase client is not initialized");
+    const { data, error } = await client
+      .from("accounts")
+      .select("*")
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+
+    // Нормализация полей под UI
+    DataStore.accounts = (data || []).map(a => ({
+      id: a.id || a.slug || a.name,
+      name: a.name || a.slug || "Account",
+      currency: a.currency || "USD",
+      startingEquity: Number(a.starting_equity ?? a.balance ?? 0)
+    }));
+
+    // Инициализация выбранного аккаунта
+    try {
+      const saved = localStorage.getItem("tj.selectedAccountId");
+      if (saved && DataStore.accounts.find(x => x.id === saved)) {
+        Session.selectedAccountId = saved;
+      } else {
+        Session.selectedAccountId = DataStore.accounts[0]?.id || null;
+      }
+    } catch {
+      Session.selectedAccountId = DataStore.accounts[0]?.id || null;
+    }
+
+    // уведомим подписчиков (журнал слушает это событие)
+    document.dispatchEvent(new Event("tj.accounts.changed"));
     return DataStore.accounts;
   },
   getTrades(accountId) {

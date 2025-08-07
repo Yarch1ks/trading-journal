@@ -712,8 +712,21 @@ async function init() {
       window.persistToStorage = () => {};
     }
 
-    // первичная загрузка из Supabase
-    await refreshTrades();
+  // первичная загрузка из Supabase
+  await refreshTrades();
+
+  // Жёсткая подгрузка аккаунтов из Supabase как источника истины,
+  // чтобы селект показывал ровно те аккаунты, что на странице "Аккаунты".
+  try {
+    if (typeof Selectors?.refreshAccountsFromSupabase === "function") {
+      await Selectors.refreshAccountsFromSupabase();
+      console.log("Journal: accounts loaded from Supabase via Selectors.refreshAccountsFromSupabase");
+    } else {
+      console.warn("Journal: no explicit loader for Supabase accounts; using Selectors.getAccounts()");
+    }
+  } catch (e) {
+    console.error("Journal: failed to load accounts from Supabase", e);
+  }
 
     // Safe hydration for dropdowns
     // Добавим жёсткую инициализацию даже если accDD/accLbl отсутствуют
