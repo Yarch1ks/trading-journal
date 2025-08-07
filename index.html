@@ -121,9 +121,6 @@
             </ul>
           </div>
 
-          <button id="openAccountsBtn" class="icon-btn" title="Аккаунты" aria-label="Аккаунты">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-3-3.87M4 21v-2a4 4 0 0 1 3-3.87M7 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
 
           <button class="icon-btn" title="Уведомления" aria-label="Уведомления">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -284,9 +281,33 @@
     <!-- SPA Content outlet (not used in multi-page mode, keep for future) -->
     <div id="view" class="view" style="display:none;"></div>
 
-    <footer class="app-footer">
-      <span>© Trading Journal</span>
-      <span class="muted">Минималистичный дашборд. Модульная архитектура.</span>
+    <footer class="app-footer app-footer--pro">
+      <div class="af-left">
+        <div class="user-mini">
+          <div class="avatar small">A</div>
+          <div class="uinfo">
+            <div class="uname">Admin</div>
+            <div class="umail muted">admin@trading.com</div>
+          </div>
+        </div>
+        <div class="u-actions">
+          <button class="icon-btn" title="Настройки" aria-label="Настройки">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.66 0 1.26-.39 1.51-1 .25-.61.11-1.25-.33-1.72l-.06-.06A2 2 0 1 1 7.04 3.1l.06.06c.47.44 1.14.58 1.72.33.61-.25 1-.85 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51.58.25 1.25.11 1.72-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.44.47-.58 1.14-.33 1.72.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="icon-btn danger" title="Выйти" aria-label="Выйти">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="af-center muted">
+        © 2025 Trading Journal Pro • Версия 2.1.0
+      </div>
+
+      <div class="af-right muted">
+        Последнее обновление: <span id="lastUpdate">—</span>
+        <span class="status-dot online"></span> Соединение
+      </div>
     </footer>
   </div>
 
