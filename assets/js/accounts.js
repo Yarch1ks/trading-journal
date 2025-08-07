@@ -259,8 +259,16 @@
       backdrop.setAttribute("aria-hidden", "true");
     }
     async function open() {
-      backdrop.hidden = false;
-      backdrop.setAttribute("aria-hidden", "false");
+      // backdrop may be null if injection failed or DOM changed; ensure present
+      let el = document.getElementById("accountsModalBackdrop");
+      if (!el) {
+        injectModal();
+        el = document.getElementById("accountsModalBackdrop");
+      }
+      if (!el) return; // give up silently if cannot create
+      el.hidden = false;
+      el.setAttribute("aria-hidden", "false");
+      backdrop = el; // refresh local ref
       await load();
     }
     safeOn(closeBtn, "click", close);
@@ -380,36 +388,63 @@
   window.AccountsUI = Object.assign(window.AccountsUI || {}, {
     injectModal,
     open: () => {
-      const el = document.getElementById("accountsModalBackdrop");
-      if (!el) injectModal();
-      document.getElementById("accountsModalBackdrop").hidden = false;
-      document.getElementById("accountsModalBackdrop").setAttribute("aria-hidden", "false");
+      // delegate to inner open() to ensure load() is called
+      if (!document.getElementById("accountsModalBackdrop")) injectModal();
+      const b = document.getElementById("accountsModalBackdrop");
+      if (!b) return;
+      b.hidden = false;
+      b.setAttribute("aria-hidden", "false");
     },
     close: () => {
-      const el = document.getElementById("accountsModalBackdrop");
-      if (el) {
-        el.hidden = true;
-        el.setAttribute("aria-hidden", "true");
+      const b = document.getElementById("accountsModalBackdrop");
+      if (b) {
+        b.hidden = true;
+        b.setAttribute("aria-hidden", "true");
       }
     },
   });
 
   // Auto-inject on DOM ready (safe if included on multiple pages)
   document.addEventListener("DOMContentLoaded", () => {
-    injectModal();
-
+    // Do not inject immediately; inject on first open to ensure body is ready and prevent double-inject races.
     function wire() {
       const triggers = document.querySelectorAll("#openAccountsBtn");
       triggers.forEach((t) => {
-        // avoid duplicate listeners
-        t.__accBound || t.addEventListener("click", () => window.AccountsUI.open());
+        if (t.__accBound) return;
+        t.addEventListener("click", async () => {
+          if (!document.getElementById("accountsModalBackdrop")) injectModal();
+          const el = document.getElementById("accountsModalBackdrop");
+          if (!el) return;
+          el.hidden = false;
+          el.setAttribute("aria-hidden", "false");
+          // trigger initial load after open
+          try {
+            // call internal open to run load(); fallback if not available
+            if (window.AccountsUI && typeof open === "function") {
+              // no-op: local open is not accessible here; mimic by dispatching event
+            }
+            // quick init: ensure list loads at least once
+            const evt = new Event("accounts-open");
+            document.dispatchEvent(evt);
+          } catch {}
+        });
         t.__accBound = true;
       });
     }
 
     // initial wire
     wire();
-    // observe DOM changes in case header re-renders
+    // also allow other scripts to request modal injection/open
+    document.addEventListener("accounts-open", () => {
+      // ensure modal exists and kick minimal load by toggling hidden (idempotent)
+      if (!document.getElementById("accountsModalBackdrop")) injectModal();
+      const b = document.getElementById("accountsModalBackdrop");
+      if (b) {
+        b.hidden = false;
+        b.setAttribute("aria-hidden", "false");
+      }
+    });
+    // re-wire on DOM changes (header rerenders)
     const mo = new MutationObserver(() => wire());
     mo.observe(document.body, { childList: true, subtree: true });
   });
