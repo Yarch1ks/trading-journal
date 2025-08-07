@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
 <script>
-  // Используем такие же ключи, как в auth.html
+  // Используем единый клиент из assets/js/auth.js (window.supabaseClient)
   window.SUPABASE_URL = window.SUPABASE_URL || "https://bmxmtjbafnwoetwkuybj.supabase.co";
   window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJteG10amJhZm53b2V0d2t1eWJqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ1MTI0NjUsImV4cCI6MjA3MDA4ODQ2NX0._V0q8Biy8wGahqdaiQSvMt3BDbKGNZzQdb8nAa2X8qo";
   document.addEventListener('DOMContentLoaded', async () => {
     try {
-      if (!window.supabase) return;
-      const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        window.location.href = './auth.html';
-      }
+      const client = window.supabaseClient || (window.auth && window.auth.supabase);
+      if (!client) return;
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) window.location.href = './auth.html';
     } catch (e) {
       window.location.href = './auth.html';
     }
