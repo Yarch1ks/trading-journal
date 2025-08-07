@@ -203,9 +203,10 @@ function wireEvents() {
     if (periodDropdown) periodDropdown.classList.remove("open");
   });
   // Accounts button opens modal
-  if (openAccountsBtn && window.AccountsUI && window.AccountsUI.open) {
-    openAccountsBtn.addEventListener("click", () => window.AccountsUI.open());
-  }
+  // Handled exclusively in assets/js/accounts.js
+  // if (openAccountsBtn && window.AccountsUI && window.AccountsUI.open) {
+  //   openAccountsBtn.addEventListener("click", () => window.AccountsUI.open());
+  // }
 
   if (themeToggle) themeToggle.addEventListener("click", toggleTheme);
 
