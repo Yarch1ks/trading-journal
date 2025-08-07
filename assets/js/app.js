@@ -1,4 +1,4 @@
-import { DataStore, Session, Selectors, computeKpis, filterTradesByPeriod } from "./state.js";
+import { DataStore, Session, Selectors, computeKpis, filterTradesByPeriod, setSelectedAccount } from "./state.js";
 import { renderRecentTrades, renderGoals, setKpi } from "./components.js";
 import { fmt } from "./utils.js";
 import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } from "./charts.js";
@@ -124,6 +124,8 @@ const userNameEl = document.getElementById("userName");
  * - Period dropdown remains.
  */
 const openAccountsBtn = document.getElementById("openAccountsBtn"); // may be null on some pages
+// Compact account select for header (will be injected if missing)
+let headerAccountSelect = document.getElementById("headerAccountSelect");
 const periodDropdown = document.getElementById("periodDropdown");
 const periodDropdownLabel = document.getElementById("periodDropdownLabel");
 const periodDropdownMenu = document.getElementById("periodDropdownMenu");
@@ -211,6 +213,7 @@ function init() {
     document.body.appendChild(status);
 
     hydrateSelectors();
+    hydrateHeaderAccountSelect(); // ensure account selector exists and synced
     ensureHeaderNickname();
     hydrateNotes();
     hydrateGoals();
@@ -276,6 +279,61 @@ function hydrateSelectors() {
   });
   const currentPeriod = periodOptions.find(p => p.v === Session.period);
   periodDropdownLabel.textContent = currentPeriod ? currentPeriod.t : "Период";
+}
+
+// Header account selector: creates/selects compact <select> and syncs with Session/localStorage
+function hydrateHeaderAccountSelect() {
+  // ensure accounts loaded
+  if (typeof Selectors.refreshAccountsFromSupabase === "function") {
+    // fire and forget; if already loaded, it will just re-emit event
+    Selectors.refreshAccountsFromSupabase().catch(()=>{});
+  }
+  if (!headerAccountSelect) {
+    headerAccountSelect = document.createElement("select");
+    headerAccountSelect.id = "headerAccountSelect";
+    headerAccountSelect.className = "input-compact";
+    headerAccountSelect.style.minWidth = "180px";
+    headerAccountSelect.style.padding = "6px 10px";
+    headerAccountSelect.style.border = "1px solid var(--border)";
+    headerAccountSelect.style.borderRadius = "10px";
+    headerAccountSelect.style.background = "var(--elev-2)";
+    headerAccountSelect.style.color = "var(--text)";
+    // try to place into header right controls
+    const ahRight = document.querySelector(".ah-right");
+    const themeBtn = document.getElementById("themeToggle");
+    if (ahRight) {
+      ahRight.insertBefore(headerAccountSelect, themeBtn || ahRight.firstChild);
+    } else {
+      // fallback: append to header
+      const header = document.querySelector(".app-header");
+      if (header) header.appendChild(headerAccountSelect);
+      else document.body.appendChild(headerAccountSelect);
+    }
+  }
+  const fill = () => {
+    const accs = Selectors.getAccounts();
+    headerAccountSelect.innerHTML = "";
+    accs.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a.id;
+      opt.textContent = a.name;
+      if (a.id === Session.selectedAccountId) opt.selected = true;
+      headerAccountSelect.appendChild(opt);
+    });
+  };
+  fill();
+  headerAccountSelect.onchange = () => {
+    setSelectedAccount(headerAccountSelect.value);
+    renderAll();            // KPIs/charts/recent
+  };
+  // react to global account/trade changes
+  document.addEventListener("tj.accounts.changed", () => { fill(); renderAll(); });
+  document.addEventListener("tj.account.selected", (e) => {
+    // external changes (e.g., Journal) reflect here
+    if (e?.detail?.id) headerAccountSelect.value = e.detail.id;
+    renderAll();
+  });
+  document.addEventListener("tj.trades.changed", () => renderAll());
 }
 
 function hydrateNotes() {

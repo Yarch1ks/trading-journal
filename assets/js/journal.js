@@ -1,4 +1,4 @@
-import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade } from "./state.js";
+import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade, setSelectedAccount } from "./state.js";
 import { fmt } from "./utils.js";
 
 const DATE_FORMAT = "DD-MM-YYYY";
@@ -800,8 +800,7 @@ async function init() {
 
       // Обработчик изменения — это единая точка синхронизации
       headerAccountSelect.onchange = () => {
-        Session.selectedAccountId = headerAccountSelect.value;
-        try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
+        setSelectedAccount(headerAccountSelect.value);
         // если открыта модалка, сразу меняем там select
         if (fAccount) fAccount.value = headerAccountSelect.value;
         renderAll();
