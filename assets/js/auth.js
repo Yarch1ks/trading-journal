@@ -21,6 +21,8 @@
   }
 
   const supabase = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+  // Expose client globally so other modules (state.js) can use it
+  window.supabaseClient = supabase;
 
   // Генерация email из никнейма по правилу: nickname@example.com (валидный домен)
   // Приоритетно берём window.AUTH_EMAIL_SUFFIX (задано в auth.html), иначе fallback на example.com

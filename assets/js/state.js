@@ -58,14 +58,14 @@ export const Selectors = {
 
 // -------- Supabase CRUD wrappers (public.trades) --------
 async function getUserId() {
-  const { data, error } = await window.supabase.auth.getUser();
+  const { data, error } = await window.supabaseClient.auth.getUser();
   if (error) throw error;
   return data?.user?.id;
 }
 
 export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
   const uid = await getUserId();
-  let q = window.supabase.from("trades").select("*").eq("user_id", uid).order("executed_at", { ascending: false });
+  let q = window.supabaseClient.from("trades").select("*").eq("user_id", uid).order("executed_at", { ascending: false });
   if (accountId) q = q.eq("metadata->>accountId", accountId);
   if (limit) q = q.range(offset, offset + limit - 1);
   const { data, error } = await q;
@@ -106,7 +106,7 @@ export async function createTrade(ui) {
       tags: ui.tags || []
     }
   };
-  const { data, error } = await window.supabase.from("trades").insert(row).select().single();
+  const { data, error } = await window.supabaseClient.from("trades").insert(row).select().single();
   if (error) throw error;
   return data.id;
 }
@@ -128,12 +128,12 @@ export async function updateTrade(id, ui) {
       tags: ui.tags || []
     }
   };
-  const { error } = await window.supabase.from("trades").update(row).eq("id", id);
+  const { error } = await window.supabaseClient.from("trades").update(row).eq("id", id);
   if (error) throw error;
 }
 
 export async function deleteTrade(id) {
-  const { error } = await window.supabase.from("trades").delete().eq("id", id);
+  const { error } = await window.supabaseClient.from("trades").delete().eq("id", id);
   if (error) throw error;
 }
 
