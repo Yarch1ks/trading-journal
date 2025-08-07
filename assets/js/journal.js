@@ -8,6 +8,10 @@ const accDD = document.getElementById("accDD");
 const accLbl = document.getElementById("accLbl");
 const accMenu = document.getElementById("accMenu");
 const openAccountsBtn = document.getElementById("openAccountsBtn");
+// HACK: journal.html не содержит полноценный выпадающий список Accounts.
+// В разметке есть только кнопка #openAccountsBtn. Поэтому делаем простой
+// однострочный селектор в шапке, чтобы выбор был явным и синхронизировался с модалкой.
+let headerAccountSelect = document.getElementById("headerAccountSelect");
 const periodDD = document.getElementById("periodDD");
 const periodLbl = document.getElementById("periodLbl");
 const periodMenu = document.getElementById("periodMenu");
@@ -216,6 +220,15 @@ function openModal(trade = null) {
 
   if (modalBackdrop) modalBackdrop.style.display = "block";
   if (modal) modal.style.display = "block";
+
+  // При открытии модалки — жёстко синхронизируем с селектором в хедере (если он есть)
+  if (headerAccountSelect && fAccount) {
+    if (headerAccountSelect.value) {
+      fAccount.value = headerAccountSelect.value;
+      Session.selectedAccountId = headerAccountSelect.value;
+      try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
+    }
+  }
 
   // focus and Esc-close
   if (fStartAt) setTimeout(() => fStartAt.focus(), 0);
@@ -705,38 +718,94 @@ async function init() {
     // Safe hydration for dropdowns
     if (accMenu && accLbl && accDD) {
       const hydrateAccountsDropdown = () => {
-        accMenu.innerHTML = "";
         const accs = Selectors.getAccounts();
 
-        // восстановить глобальный выбор, если есть
+        // Восстановить глобальный выбор
         try {
           const g = localStorage.getItem("tj.selectedAccountId");
           if (g) Session.selectedAccountId = g;
         } catch {}
 
-        const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
-        if (selectedAcc) accLbl.textContent = selectedAcc.name;
+        // Обновить подпись на кнопке (если есть)
+        if (accLbl) {
+          const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
+          if (selectedAcc) accLbl.textContent = selectedAcc.name;
+        }
 
+        // Создать компактный селектор аккаунта в правой части хедера,
+        // если полноразмерного dropdown в разметке нет.
+        if (!headerAccountSelect) {
+          headerAccountSelect = document.createElement("select");
+          headerAccountSelect.id = "headerAccountSelect";
+          headerAccountSelect.className = "input-compact";
+          headerAccountSelect.style.marginRight = "8px";
+          headerAccountSelect.style.minWidth = "180px";
+          headerAccountSelect.style.padding = "6px 10px";
+          headerAccountSelect.style.border = "1px solid var(--border)";
+          headerAccountSelect.style.borderRadius = "10px";
+          headerAccountSelect.style.background = "var(--elev-2)";
+          headerAccountSelect.style.color = "var(--text)";
+          // Вставка: сначала пытаемся в .ah-right, если нет — в header .app-header
+          let inserted = false;
+          const ahRight = document.querySelector(".ah-right");
+          const themeBtn = document.getElementById("themeToggle");
+          if (ahRight) {
+            ahRight.insertBefore(headerAccountSelect, themeBtn || ahRight.firstChild);
+            inserted = true;
+          }
+          if (!inserted) {
+            const header = document.querySelector(".app-header");
+            if (header) {
+              header.appendChild(headerAccountSelect);
+              inserted = true;
+            }
+          }
+          // Если всё ещё не вставили — добавим в body фиксированно, чтобы точно увидеть
+          if (!inserted) {
+            headerAccountSelect.style.position = "fixed";
+            headerAccountSelect.style.top = "12px";
+            headerAccountSelect.style.right = "56px";
+            headerAccountSelect.style.zIndex = "9999";
+            document.body.appendChild(headerAccountSelect);
+          }
+        }
+
+        // Наполнить селектор аккаунтами
+        headerAccountSelect.innerHTML = "";
         accs.forEach(a => {
-          const li = document.createElement("li");
-          li.textContent = a.name;
-          li.dataset.value = a.id;
-          if (a.id === Session.selectedAccountId) li.classList.add("active");
-          li.addEventListener("click", (e) => {
-            e.stopPropagation();
-            Session.selectedAccountId = a.id;
-            try {
-              localStorage.setItem("tj.selectedAccountId", a.id);
-            } catch {}
-            accLbl.textContent = a.name;
-            // синхрон с модалкой, если открыта
-            if (fAccount) fAccount.value = a.id;
-            [...accMenu.children].forEach(n => n.classList.toggle("active", n.dataset.value === a.id));
-            accDD.classList.remove("open");
-            renderAll();
-          });
-          accMenu.appendChild(li);
+          const opt = document.createElement("option");
+          opt.value = a.id;
+          opt.textContent = a.name;
+          if (a.id === Session.selectedAccountId) opt.selected = true;
+          headerAccountSelect.appendChild(opt);
         });
+
+        // Обработчик изменения — это единая точка синхронизации
+        headerAccountSelect.onchange = () => {
+          Session.selectedAccountId = headerAccountSelect.value;
+          try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
+          // если открыта модалка, сразу меняем там select
+          if (fAccount) fAccount.value = headerAccountSelect.value;
+          renderAll();
+        };
+
+        // также поддержим старый список (если присутствует accMenu)
+        if (accMenu) {
+          accMenu.innerHTML = "";
+          accs.forEach(a => {
+            const li = document.createElement("li");
+            li.textContent = a.name;
+            li.dataset.value = a.id;
+            if (a.id === Session.selectedAccountId) li.classList.add("active");
+            li.addEventListener("click", (e) => {
+              e.stopPropagation();
+              headerAccountSelect.value = a.id;
+              headerAccountSelect.dispatchEvent(new Event("change"));
+              if (accDD) accDD.classList.remove("open");
+            });
+            accMenu.appendChild(li);
+          });
+        }
       };
 
       hydrateAccountsDropdown();
