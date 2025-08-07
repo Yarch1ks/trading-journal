@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<script src="https://unpkg.com/@supabase/supabase-js@2" defer></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script>
   // Используем те же глобальные переменные, что и в auth.html.
   // Если хотите — можно вынести в отдельный файл и подключить везде.
@@ -194,8 +194,13 @@
 
   <input type="file" id="csvInput" accept=".csv" style="display:none"/>
 
+  <!-- Ensure auth.js runs before modules to initialize window.supabaseClient -->
   <script src="assets/js/auth.js"></script>
   <script type="module" src="assets/js/state.js"></script>
   <script type="module" src="assets/js/journal.js"></script>
+  <script>
+    // Debug: show client availability after all scripts loaded
+    console.log("sdk", !!window.supabase, "client", !!window.supabaseClient, "auth.supabase", !!(window.auth && window.auth.supabase));
+  </script>
 </body>
 </html>
