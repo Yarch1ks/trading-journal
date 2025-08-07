@@ -7,6 +7,7 @@ const DATE_FORMAT = "DD-MM-YYYY";
 const accDD = document.getElementById("accDD");
 const accLbl = document.getElementById("accLbl");
 const accMenu = document.getElementById("accMenu");
+const openAccountsBtn = document.getElementById("openAccountsBtn");
 const periodDD = document.getElementById("periodDD");
 const periodLbl = document.getElementById("periodLbl");
 const periodMenu = document.getElementById("periodMenu");
@@ -153,10 +154,13 @@ function openModal(trade = null) {
   // Accounts
   if (fAccount) {
     fAccount.innerHTML = "";
+    // always reflect current selected account from Session
+    const currentSelected = trade?.accountId || Session.selectedAccountId;
     Selectors.getAccounts().forEach(a => {
       const opt = document.createElement("option");
-      opt.value = a.id; opt.textContent = a.name;
-      if ((trade?.accountId || Session.selectedAccountId) === a.id) opt.selected = true;
+      opt.value = a.id;
+      opt.textContent = a.name;
+      if (currentSelected === a.id) opt.selected = true;
       fAccount.appendChild(opt);
     });
   }
@@ -542,6 +546,8 @@ function wireEvents() {
   if (modalClose) modalClose.addEventListener("click", closeModal);
   if (modalBackdrop) modalBackdrop.addEventListener("click", closeModal);
   if (btnAdd) btnAdd.addEventListener("click", () => openModal());
+  // open accounts page from button if present
+  if (openAccountsBtn) openAccountsBtn.addEventListener("click", () => { window.location.href = "accounts.html"; });
 
   if (btnSave) btnSave.addEventListener("click", async () => {
     const t = collectForm();
@@ -680,37 +686,50 @@ async function init() {
 
     // Safe hydration for dropdowns
     if (accMenu && accLbl && accDD) {
-      accMenu.innerHTML = "";
-      const accs = Selectors.getAccounts();
-      // restore selected account
-      try {
-        const savedAcc = localStorage.getItem("tj.journal.accountId");
-        if (savedAcc) Session.selectedAccountId = savedAcc;
-      } catch {}
-      const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
-      if (selectedAcc) accLbl.textContent = selectedAcc.name;
-      accs.forEach(a => {
-        const li = document.createElement("li");
-        li.textContent = a.name;
-        li.dataset.value = a.id;
-        if (a.id === Session.selectedAccountId) li.classList.add("active");
-        li.addEventListener("click", (e) => {
-          e.stopPropagation();
-          Session.selectedAccountId = a.id;
-          try { localStorage.setItem("tj.journal.accountId", a.id); } catch {}
-          accLbl.textContent = a.name;
-          [...accMenu.children].forEach(n => n.classList.toggle("active", n.dataset.value === a.id));
-          accDD.classList.remove("open");
-          renderAll();
+      const hydrateAccountsDropdown = () => {
+        accMenu.innerHTML = "";
+        const accs = Selectors.getAccounts();
+        // restore selected account
+        try {
+          const savedAcc = localStorage.getItem("tj.journal.accountId");
+          if (savedAcc) Session.selectedAccountId = savedAcc;
+        } catch {}
+        const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
+        if (selectedAcc) accLbl.textContent = selectedAcc.name;
+
+        accs.forEach(a => {
+          const li = document.createElement("li");
+          li.textContent = a.name;
+          li.dataset.value = a.id;
+          if (a.id === Session.selectedAccountId) li.classList.add("active");
+          li.addEventListener("click", (e) => {
+            e.stopPropagation();
+            Session.selectedAccountId = a.id;
+            try { localStorage.setItem("tj.journal.accountId", a.id); } catch {}
+            accLbl.textContent = a.name;
+            // Keep modal account in sync with dropdown choice
+            if (fAccount) fAccount.value = a.id;
+            [...accMenu.children].forEach(n => n.classList.toggle("active", n.dataset.value === a.id));
+            accDD.classList.remove("open");
+            renderAll();
+          });
+          accMenu.appendChild(li);
         });
-        accMenu.appendChild(li);
-      });
+      };
+
+      hydrateAccountsDropdown();
 
       const accToggle = accDD.querySelector(".dropdown-toggle");
       if (accToggle) accToggle.addEventListener("click", (e) => {
         e.stopPropagation();
         accDD.classList.toggle("open");
         if (periodDD) periodDD.classList.remove("open");
+      });
+
+      // When trades/accounts are refreshed externally, keep dropdown and modal synced
+      document.addEventListener("tj.accounts.changed", () => {
+        hydrateAccountsDropdown();
+        if (fAccount && Session.selectedAccountId) fAccount.value = Session.selectedAccountId;
       });
     }
 
