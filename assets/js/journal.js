@@ -716,98 +716,106 @@ async function init() {
     await refreshTrades();
 
     // Safe hydration for dropdowns
-    if (accMenu && accLbl && accDD) {
-      const hydrateAccountsDropdown = () => {
-        const accs = Selectors.getAccounts();
+    // Добавим жёсткую инициализацию даже если accDD/accLbl отсутствуют
+    const hydrateAccountsDropdown = () => {
+      try { console.log("Journal hdr sel: hydrate start"); } catch {}
+      const accs = Selectors.getAccounts();
+      try { console.log("Journal hdr sel: accounts", accs?.length || 0); } catch {}
 
-        // Восстановить глобальный выбор
-        try {
-          const g = localStorage.getItem("tj.selectedAccountId");
-          if (g) Session.selectedAccountId = g;
-        } catch {}
+      // Восстановить глобальный выбор
+      try {
+        const g = localStorage.getItem("tj.selectedAccountId");
+        if (g) Session.selectedAccountId = g;
+      } catch {}
 
-        // Обновить подпись на кнопке (если есть)
-        if (accLbl) {
-          const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
-          if (selectedAcc) accLbl.textContent = selectedAcc.name;
+      // Обновить подпись на кнопке (если есть)
+      if (accLbl) {
+        const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
+        if (selectedAcc) accLbl.textContent = selectedAcc.name;
+      }
+
+      // Создать компактный селектор аккаунта в правой части хедера,
+      // если полноразмерного dropdown в разметке нет.
+      if (!headerAccountSelect) {
+        headerAccountSelect = document.createElement("select");
+        headerAccountSelect.id = "headerAccountSelect";
+        headerAccountSelect.className = "input-compact";
+        headerAccountSelect.style.marginRight = "8px";
+        headerAccountSelect.style.minWidth = "180px";
+        headerAccountSelect.style.padding = "6px 10px";
+        headerAccountSelect.style.border = "1px solid var(--border)";
+        headerAccountSelect.style.borderRadius = "10px";
+        headerAccountSelect.style.background = "var(--elev-2)";
+        headerAccountSelect.style.color = "var(--text)";
+        // Вставка: сначала пытаемся в .ah-right, если нет — в header .app-header
+        let inserted = false;
+        const ahRight = document.querySelector(".ah-right");
+        const themeBtn = document.getElementById("themeToggle");
+        if (ahRight) {
+          ahRight.insertBefore(headerAccountSelect, themeBtn || ahRight.firstChild);
+          inserted = true;
+          try { console.log("Journal hdr sel: inserted into .ah-right"); } catch {}
         }
-
-        // Создать компактный селектор аккаунта в правой части хедера,
-        // если полноразмерного dropdown в разметке нет.
-        if (!headerAccountSelect) {
-          headerAccountSelect = document.createElement("select");
-          headerAccountSelect.id = "headerAccountSelect";
-          headerAccountSelect.className = "input-compact";
-          headerAccountSelect.style.marginRight = "8px";
-          headerAccountSelect.style.minWidth = "180px";
-          headerAccountSelect.style.padding = "6px 10px";
-          headerAccountSelect.style.border = "1px solid var(--border)";
-          headerAccountSelect.style.borderRadius = "10px";
-          headerAccountSelect.style.background = "var(--elev-2)";
-          headerAccountSelect.style.color = "var(--text)";
-          // Вставка: сначала пытаемся в .ah-right, если нет — в header .app-header
-          let inserted = false;
-          const ahRight = document.querySelector(".ah-right");
-          const themeBtn = document.getElementById("themeToggle");
-          if (ahRight) {
-            ahRight.insertBefore(headerAccountSelect, themeBtn || ahRight.firstChild);
+        if (!inserted) {
+          const header = document.querySelector(".app-header");
+          if (header) {
+            header.appendChild(headerAccountSelect);
             inserted = true;
-          }
-          if (!inserted) {
-            const header = document.querySelector(".app-header");
-            if (header) {
-              header.appendChild(headerAccountSelect);
-              inserted = true;
-            }
-          }
-          // Если всё ещё не вставили — добавим в body фиксированно, чтобы точно увидеть
-          if (!inserted) {
-            headerAccountSelect.style.position = "fixed";
-            headerAccountSelect.style.top = "12px";
-            headerAccountSelect.style.right = "56px";
-            headerAccountSelect.style.zIndex = "9999";
-            document.body.appendChild(headerAccountSelect);
+            try { console.log("Journal hdr sel: appended to .app-header"); } catch {}
           }
         }
-
-        // Наполнить селектор аккаунтами
-        headerAccountSelect.innerHTML = "";
-        accs.forEach(a => {
-          const opt = document.createElement("option");
-          opt.value = a.id;
-          opt.textContent = a.name;
-          if (a.id === Session.selectedAccountId) opt.selected = true;
-          headerAccountSelect.appendChild(opt);
-        });
-
-        // Обработчик изменения — это единая точка синхронизации
-        headerAccountSelect.onchange = () => {
-          Session.selectedAccountId = headerAccountSelect.value;
-          try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
-          // если открыта модалка, сразу меняем там select
-          if (fAccount) fAccount.value = headerAccountSelect.value;
-          renderAll();
-        };
-
-        // также поддержим старый список (если присутствует accMenu)
-        if (accMenu) {
-          accMenu.innerHTML = "";
-          accs.forEach(a => {
-            const li = document.createElement("li");
-            li.textContent = a.name;
-            li.dataset.value = a.id;
-            if (a.id === Session.selectedAccountId) li.classList.add("active");
-            li.addEventListener("click", (e) => {
-              e.stopPropagation();
-              headerAccountSelect.value = a.id;
-              headerAccountSelect.dispatchEvent(new Event("change"));
-              if (accDD) accDD.classList.remove("open");
-            });
-            accMenu.appendChild(li);
-          });
+        if (!inserted) {
+          headerAccountSelect.style.position = "fixed";
+          headerAccountSelect.style.top = "12px";
+          headerAccountSelect.style.right = "56px";
+          headerAccountSelect.style.zIndex = "9999";
+          document.body.appendChild(headerAccountSelect);
+          try { console.log("Journal hdr sel: appended to body (fallback)"); } catch {}
         }
+      }
+
+      // Наполнить селектор аккаунтами
+      headerAccountSelect.innerHTML = "";
+      accs.forEach(a => {
+        const opt = document.createElement("option");
+        opt.value = a.id;
+        opt.textContent = a.name;
+        if (a.id === Session.selectedAccountId) opt.selected = true;
+        headerAccountSelect.appendChild(opt);
+      });
+      try { console.log("Journal hdr sel: options filled", headerAccountSelect.options.length); } catch {}
+
+      // Обработчик изменения — это единая точка синхронизации
+      headerAccountSelect.onchange = () => {
+        Session.selectedAccountId = headerAccountSelect.value;
+        try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
+        // если открыта модалка, сразу меняем там select
+        if (fAccount) fAccount.value = headerAccountSelect.value;
+        renderAll();
+        try { console.log("Journal hdr sel: changed ->", headerAccountSelect.value); } catch {}
       };
 
+      // также поддержим старый список (если присутствует accMenu)
+      if (accMenu) {
+        accMenu.innerHTML = "";
+        accs.forEach(a => {
+          const li = document.createElement("li");
+          li.textContent = a.name;
+          li.dataset.value = a.id;
+          if (a.id === Session.selectedAccountId) li.classList.add("active");
+          li.addEventListener("click", (e) => {
+            e.stopPropagation();
+            headerAccountSelect.value = a.id;
+            headerAccountSelect.dispatchEvent(new Event("change"));
+            if (accDD) accDD.classList.remove("open");
+          });
+          accMenu.appendChild(li);
+        });
+      }
+      try { console.log("Journal hdr sel: hydrate done"); } catch {}
+    };
+    if (accMenu && accLbl && accDD) {
+      // Инициализация с поддержкой старого выпадающего
       hydrateAccountsDropdown();
 
       const accToggle = accDD.querySelector(".dropdown-toggle");
@@ -816,13 +824,16 @@ async function init() {
         accDD.classList.toggle("open");
         if (periodDD) periodDD.classList.remove("open");
       });
-
-      // When trades/accounts are refreshed externally, keep dropdown and modal synced
-      document.addEventListener("tj.accounts.changed", () => {
-        hydrateAccountsDropdown();
-        if (fAccount && Session.selectedAccountId) fAccount.value = Session.selectedAccountId;
-      });
+    } else {
+      // Даже если элементов нет — жёстко вставим селектор
+      hydrateAccountsDropdown();
     }
+
+    // When trades/accounts are refreshed externally, keep dropdown and modal synced
+    document.addEventListener("tj.accounts.changed", () => {
+      hydrateAccountsDropdown();
+      if (fAccount && Session.selectedAccountId) fAccount.value = Session.selectedAccountId;
+    });
 
     if (periodMenu && periodLbl && periodDD) {
       // restore period
