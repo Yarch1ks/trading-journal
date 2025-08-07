@@ -396,7 +396,7 @@
     });
 
     // Expose handlers
-    window.AccountsUI = Object.assign(window.AccountsUI || {}, { open, close });
+    window.AccountsUI = Object.assign(window.AccountsUI || {}, { close /* , open: openAndLoad */ });
   }
 
   // Public API
