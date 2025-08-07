@@ -270,6 +270,7 @@
       }
       state.items = data || [];
       if (state.items.length && !state.selectedId) state.selectedId = state.items[0].id;
+      if (state.selectedId && window.setSelectedAccount) window.setSelectedAccount(state.selectedId);
       renderList();
       const cur = state.items.find(a => a.id === state.selectedId);
       fillForm(formEl, cur || null);
@@ -283,6 +284,7 @@
 
     function select(id) {
       state.selectedId = id;
+      if (window.setSelectedAccount) window.setSelectedAccount(id);
       renderList();
       const acc = state.items.find(a => a.id === id);
       fillForm(formEl, acc || null);

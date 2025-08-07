@@ -181,10 +181,7 @@ function openModal(trade = null) {
     });
 
     // Сохраняем выбор глобально при изменении пользователем
-    fAccount.addEventListener("change", () => {
-      try { localStorage.setItem("tj.selectedAccountId", fAccount.value); } catch {}
-      Session.selectedAccountId = fAccount.value;
-    }, { once: false });
+    fAccount.addEventListener("change", () => setSelectedAccount(fAccount.value), { once: false });
   }
 
   // Prefill (map from state model)
@@ -225,8 +222,7 @@ function openModal(trade = null) {
   if (headerAccountSelect && fAccount) {
     if (headerAccountSelect.value) {
       fAccount.value = headerAccountSelect.value;
-      Session.selectedAccountId = headerAccountSelect.value;
-      try { localStorage.setItem("tj.selectedAccountId", headerAccountSelect.value); } catch {}
+      setSelectedAccount(headerAccountSelect.value);
     }
   }
 

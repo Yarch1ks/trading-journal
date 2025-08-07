@@ -28,6 +28,17 @@ export const Session = {
   notes: DataStore.notes
 };
 
+// Runtime event helpers (lightweight bus)
+export const Events = {
+  emit(name, detail) {
+    document.dispatchEvent(new CustomEvent(name, { detail }));
+  },
+  on(name, handler) {
+    document.addEventListener(name, handler);
+    return () => document.removeEventListener(name, handler);
+  }
+};
+
 // Selectors and aggregations
 export const Selectors = {
   getAccounts() {
@@ -63,8 +74,8 @@ export const Selectors = {
       Session.selectedAccountId = DataStore.accounts[0]?.id || null;
     }
 
-    // уведомим подписчиков (журнал слушает это событие)
-    document.dispatchEvent(new Event("tj.accounts.changed"));
+    // уведомим подписчиков (журнал/дашборд/аналитика)
+    document.dispatchEvent(new CustomEvent("tj.accounts.changed", { detail: { accounts: DataStore.accounts, selectedId: Session.selectedAccountId } }));
     return DataStore.accounts;
   },
   getTrades(accountId) {
@@ -113,8 +124,7 @@ export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
   if (limit) q = q.range(offset, offset + limit - 1);
   const { data, error } = await q;
   if (error) throw error;
-  // map DB rows to UI model expected by journal (keep fields journal.js uses)
-  return (data || []).map(r => ({
+  const mapped = (data || []).map(r => ({
     id: r.id,
     accountId: r.account || null,
     symbol: r.pair || "",
@@ -128,6 +138,17 @@ export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
     notes: r.notes || "",
     tags: []
   }));
+  // оповещение слушателей
+  DataStore.trades = mapped;
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { accountId, count: mapped.length } }));
+  return mapped;
+}
+
+export function setSelectedAccount(id) {
+  if (!id) return;
+  Session.selectedAccountId = id;
+  try { localStorage.setItem("tj.selectedAccountId", id); } catch {}
+  document.dispatchEvent(new CustomEvent("tj.account.selected", { detail: { id } }));
 }
 
 export async function createTrade(ui) {
@@ -149,6 +170,8 @@ export async function createTrade(ui) {
   };
   const { data, error } = await client.from("trades_new").insert(row).select().single();
   if (error) throw error;
+  // сигнализируем об изменениях
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "create", id: data.id, accountId: row.account } }));
   return data.id;
 }
 
@@ -169,12 +192,14 @@ export async function updateTrade(id, ui) {
   if (ui.notes !== undefined) patch.notes = ui.notes || "";
   const { error } = await client.from("trades_new").update(patch).eq("id", id);
   if (error) throw error;
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "update", id } }));
 }
 
 export async function deleteTrade(id) {
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
   const { error } = await client.from("trades_new").delete().eq("id", id);
   if (error) throw error;
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "delete", id } }));
 }
 
 export function computeKpis(trades, startingEquity, currency) {

@@ -170,7 +170,8 @@
   </div>
 
   <script src="assets/js/auth.js"></script>
-  <script>
+  <script type="module" src="assets/js/state.js"></script>
+  <script type="module">
     // Simple page module using the same schema as modal
     (function () {
       const client = window.supabaseClient || (window.auth && window.auth.supabase);
@@ -238,6 +239,7 @@
         }
         state.items = data || [];
         if (state.items.length && !state.selectedId) state.selectedId = state.items[0].id;
+        if (state.selectedId && window.setSelectedAccount) window.setSelectedAccount(state.selectedId);
         renderList();
         fillForm(state.items.find(a => a.id === state.selectedId) || null);
       }
@@ -247,6 +249,7 @@
         const li = e.target.closest('li.goal-item');
         if (!li) return;
         state.selectedId = li.dataset.id;
+        if (window.setSelectedAccount) window.setSelectedAccount(state.selectedId);
         fillForm(state.items.find(a => a.id === state.selectedId) || null);
       });
 
