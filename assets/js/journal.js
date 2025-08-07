@@ -154,15 +154,33 @@ function openModal(trade = null) {
   // Accounts
   if (fAccount) {
     fAccount.innerHTML = "";
-    // always reflect current selected account from Session
-    const currentSelected = trade?.accountId || Session.selectedAccountId;
-    Selectors.getAccounts().forEach(a => {
+    // Всегда заполняем по списку аккаунтов из базы
+    const accs = Selectors.getAccounts();
+    // Выбор по приоритету:
+    // 1) accountId сделки (при редактировании)
+    // 2) сохранённый глобальный выбор (tj.selectedAccountId)
+    // 3) Session.selectedAccountId
+    // 4) первый аккаунт в списке
+    let preferredId = trade?.accountId || null;
+    try {
+      if (!preferredId) preferredId = localStorage.getItem("tj.selectedAccountId");
+    } catch {}
+    if (!preferredId) preferredId = Session.selectedAccountId;
+    if (!preferredId && accs.length) preferredId = accs[0].id;
+
+    accs.forEach(a => {
       const opt = document.createElement("option");
       opt.value = a.id;
       opt.textContent = a.name;
-      if (currentSelected === a.id) opt.selected = true;
+      if (preferredId === a.id) opt.selected = true;
       fAccount.appendChild(opt);
     });
+
+    // Сохраняем выбор глобально при изменении пользователем
+    fAccount.addEventListener("change", () => {
+      try { localStorage.setItem("tj.selectedAccountId", fAccount.value); } catch {}
+      Session.selectedAccountId = fAccount.value;
+    }, { once: false });
   }
 
   // Prefill (map from state model)
@@ -689,11 +707,13 @@ async function init() {
       const hydrateAccountsDropdown = () => {
         accMenu.innerHTML = "";
         const accs = Selectors.getAccounts();
-        // restore selected account
+
+        // восстановить глобальный выбор, если есть
         try {
-          const savedAcc = localStorage.getItem("tj.journal.accountId");
-          if (savedAcc) Session.selectedAccountId = savedAcc;
+          const g = localStorage.getItem("tj.selectedAccountId");
+          if (g) Session.selectedAccountId = g;
         } catch {}
+
         const selectedAcc = accs.find(a => a.id === Session.selectedAccountId) || accs[0];
         if (selectedAcc) accLbl.textContent = selectedAcc.name;
 
@@ -705,9 +725,11 @@ async function init() {
           li.addEventListener("click", (e) => {
             e.stopPropagation();
             Session.selectedAccountId = a.id;
-            try { localStorage.setItem("tj.journal.accountId", a.id); } catch {}
+            try {
+              localStorage.setItem("tj.selectedAccountId", a.id);
+            } catch {}
             accLbl.textContent = a.name;
-            // Keep modal account in sync with dropdown choice
+            // синхрон с модалкой, если открыта
             if (fAccount) fAccount.value = a.id;
             [...accMenu.children].forEach(n => n.classList.toggle("active", n.dataset.value === a.id));
             accDD.classList.remove("open");
