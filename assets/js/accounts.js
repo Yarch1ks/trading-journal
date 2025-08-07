@@ -214,6 +214,9 @@
     const syncBtn = document.getElementById("accountSyncBtn");
     const editorTitle = document.getElementById("accountEditorTitle");
 
+    // Guard against missing nodes to avoid null.addEventListener errors
+    const safeOn = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
+
     let state = {
       userId: null,
       items: [],
@@ -260,20 +263,20 @@
       backdrop.setAttribute("aria-hidden", "false");
       await load();
     }
-    closeBtn.addEventListener("click", close);
-    cancelBtn.addEventListener("click", close);
-    backdrop.addEventListener("click", (e) => {
+    safeOn(closeBtn, "click", close);
+    safeOn(cancelBtn, "click", close);
+    safeOn(backdrop, "click", (e) => {
       if (e.target === backdrop) close();
     });
 
     // List interactions
-    listEl.addEventListener("click", (e) => {
+    safeOn(listEl, "click", (e) => {
       const li = e.target.closest(".acc-item");
       if (li) select(li.dataset.id);
     });
 
     // Toolbar actions
-    addBtn.addEventListener("click", async () => {
+    safeOn(addBtn, "click", async () => {
       // prepare new blank row locally and select it; insert on Save
       state.selectedId = null;
       fillForm(formEl, { name: "", exchange: "binance-futures", status: "active", notes: "" });
@@ -282,7 +285,7 @@
       renderList();
     });
 
-    syncAllBtn.addEventListener("click", async () => {
+    safeOn(syncAllBtn, "click", async () => {
       const client = getClient();
       if (!client) return;
       // mark synced for all user's accounts
@@ -295,7 +298,7 @@
     });
 
     // Form submit (Create or Update)
-    formEl.addEventListener("submit", async (e) => {
+    safeOn(formEl, "submit", async (e) => {
       e.preventDefault();
       const client = getClient();
       if (!client) return;
@@ -328,7 +331,7 @@
       await load();
     });
 
-    deleteBtn.addEventListener("click", async () => {
+    safeOn(deleteBtn, "click", async () => {
       if (!state.selectedId) return;
       if (!confirm("Удалить аккаунт?")) return;
       const client = getClient();
@@ -342,7 +345,7 @@
       await load();
     });
 
-    toggleBtn.addEventListener("click", async () => {
+    safeOn(toggleBtn, "click", async () => {
       const client = getClient();
       const cur = state.items.find(a => a.id === state.selectedId);
       if (!client || !cur) return;
@@ -356,7 +359,7 @@
       await load();
     });
 
-    syncBtn.addEventListener("click", async () => {
+    safeOn(syncBtn, "click", async () => {
       const client = getClient();
       if (!client || !state.selectedId) return;
       // Use RPC account_sync to set last_sync_at = now()
