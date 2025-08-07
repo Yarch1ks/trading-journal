@@ -42,8 +42,7 @@
       <div class="actions">
         <div class="selects">
           <div class="dropdown" id="accDD">
-            <button class="btn ghost dropdown-toggle"><span id="accLbl">Аккаунт</span><span class="chev">▾</span></button>
-            <ul class="dropdown-menu" id="accMenu" role="listbox" aria-label="Аккаунты"></ul>
+            <button id="openAccountsBtn" class="btn ghost">Accounts</button>
           </div>
           <div class="dropdown" id="periodDD">
             <button class="btn ghost dropdown-toggle"><span id="periodLbl">Всё время</span><span class="chev">▾</span></button>
@@ -220,6 +219,7 @@
 
   <!-- Ensure auth.js runs before modules to initialize window.supabaseClient -->
   <script src="assets/js/auth.js"></script>
+  <script src="assets/js/accounts.js"></script>
   <script type="module" src="assets/js/state.js"></script>
   <script type="module" src="assets/js/journal.js"></script>
   <script>
