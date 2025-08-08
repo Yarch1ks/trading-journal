@@ -117,22 +117,23 @@ body.sidebar-collapsed .app-header {
   gap: 12px;
 }
 
-.app-header--pro .brand-row { 
-  display: flex; 
-  align-items: center; 
-  gap: 10px;
+.app-header--pro .title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
 .app-header--pro .brand-name { 
   font-weight: 800; 
-  font-size: 20px;
+  font-size: 18px;
   letter-spacing: -0.025em;
 }
 
 .app-header--pro .brand-pro {
-  font-size: 11px; 
+  font-size: 10px; 
   color: var(--primary);
-  padding: 4px 8px; 
+  padding: 2px 6px; 
   border-radius: 999px; 
   border: 1px solid rgba(59,130,246,.25);
   background: rgba(59,130,246,.10);
@@ -141,31 +142,9 @@ body.sidebar-collapsed .app-header {
   letter-spacing: 0.05em;
 }
 
-.app-header--pro .page-row { 
-  display: inline-flex; 
-  align-items: center; 
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.app-header--pro h1 { 
-  font-size: 18px; 
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: -0.025em;
-}
-
-.app-header--pro .dot { 
-  opacity: 0.4;
-  width: 3px;
-  height: 3px;
-  background: var(--muted);
-  border-radius: 50%;
-}
-
 .app-header--pro .status-pill {
-  font-size: 11px; 
-  padding: 4px 12px; 
+  font-size: 10px; 
+  padding: 2px 8px; 
   border-radius: 999px; 
   border: 1px solid var(--border);
   background: var(--elev-2); 
@@ -177,6 +156,13 @@ body.sidebar-collapsed .app-header {
   color: var(--green); 
   border-color: var(--green);
   background: rgba(16, 185, 129, 0.1);
+}
+
+.app-header--pro h1 { 
+  font-size: 16px; 
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.025em;
 }
 
 .icon-btn {
