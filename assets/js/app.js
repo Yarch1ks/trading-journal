@@ -8,6 +8,7 @@ import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } 
  * Pages: #/dashboard (default), #/journal, #/analytics, #/calendar, #/goals, #/accounts
  */
 const viewEl = document.getElementById("view");
+const dashMain = document.querySelector("main.dashboard");
 const sidebar = document.getElementById("sidebar");
 const sbBurger = document.getElementById("sbBurger");
 const sbClose = document.getElementById("sbClose");
@@ -40,6 +41,12 @@ function setActiveNav(path) {
 }
 function mountPage(path) {
   setActiveNav(path);
+  const isDash = path === "dashboard";
+  if (dashMain) dashMain.style.display = isDash ? "" : "none";
+  if (viewEl) {
+    viewEl.style.display = isDash ? "none" : "";
+    if (!isDash) viewEl.innerHTML = "";
+  }
   switch (path) {
     case "journal":
       pageTitle && (pageTitle.textContent = "Журнал");
