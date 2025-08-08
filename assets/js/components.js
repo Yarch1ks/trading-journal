@@ -3,7 +3,7 @@
  * Contains reusable rendering functions for dashboard widgets
  */
 
-import { fmt } from "./utils.js";
+import { fmt, date } from "./utils.js";
 
 /**
  * Render recent trades table
@@ -14,7 +14,7 @@ import { fmt } from "./utils.js";
 export function renderRecentTrades(container, trades, currency = "USD") {
   container.innerHTML = trades.slice(0, 8).map(trade => `
     <tr>
-      <td>${fmt.date.toISO(trade.exitAt || trade.entryAt)}</td>
+      <td>${date.toISO(trade.exitAt || trade.entryAt)}</td>
       <td>${trade.symbol || ""}</td>
       <td>${trade.strategy || ""}</td>
       <td class="${(trade.r || 0) >= 0 ? "r-pos" : "r-neg"}">${(trade.r || 0).toFixed(2)}R</td>
@@ -89,7 +89,7 @@ export function setKpi(valueEl, deltaEl, value, delta, formatter = (n) => n, suf
   
   if (deltaEl && delta !== undefined && delta !== null) {
     const deltaText = delta >= 0 ? `+${formatter(delta)}${suffix}` : `${formatter(delta)}${suffix}`;
-    const deltaClass = delta >= 0 ? "delta-pos" : "delta-neg";
+    const deltaClass = delta >= 0 ? "positive" : "negative";
     deltaEl.textContent = deltaText;
     deltaEl.className = `kpi-delta ${deltaClass}`;
   } else if (deltaEl) {

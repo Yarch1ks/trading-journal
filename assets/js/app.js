@@ -413,7 +413,9 @@ function init() {
     renderAll();
 
     // Подписка на изменения данных
-    subscribeToDataChanges();
+    subscribeToDataChanges(() => {
+      renderAll();
+    });
 
     status.textContent = "Dashboard OK";
     setTimeout(() => { const n = document.getElementById("tj-status"); if (n) n.remove(); }, 1500);
@@ -445,19 +447,19 @@ function subscribeToDataChanges(callback) {
   // Добавляем обработчики для разных типов событий
   const accountHandler = (e) => {
     if (e.type === "tj.accounts.changed") {
-      callback(e);
+      if (typeof callback === "function") callback(e);
     }
   };
   
   const tradeHandler = (e) => {
     if (e.type === "tj.trades.changed") {
-      callback(e);
+      if (typeof callback === "function") callback(e);
     }
   };
   
   const accountSelectedHandler = (e) => {
     if (e.type === "tj.account.selected") {
-      callback(e);
+      if (typeof callback === "function") callback(e);
     }
   };
 

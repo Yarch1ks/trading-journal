@@ -1230,3 +1230,7 @@ body.sidebar-collapsed .app-footer {
     border: 1px solid #ccc;
   }
 }
+
+/* R-value colors */
+.r-pos { color: var(--green); }
+.r-neg { color: var(--red); }

@@ -88,24 +88,6 @@ async function refreshTrades() {
   }
 }
 
-// Подписка на изменения данных
-function subscribeToDataChanges(callback) {
-  const unsubscribe = subscribeToTrades((e) => {
-    if (e.type === "tj.trades.changed") {
-      callback(e);
-    } else if (e.type === "tj.accounts.changed") {
-      callback(e);
-    } else if (e.type === "tj.account.selected") {
-      pageIdx = 0;
-      renderAll();
-    }
-  });
-
-  // Отписка при размонтировании компонента
-  return () => {
-    unsubscribe();
-  };
-}
 
 function setLoading(isLoading) {
   if (btnAdd) btnAdd.disabled = isLoading;

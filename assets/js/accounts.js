@@ -450,20 +450,6 @@ function injectModal() {
   window.AccountsUI = Object.assign(window.AccountsUI || {}, { close /* , open: openAndLoad */ });
 }
 
-function subscribeToDataChanges() {
-  const unsubscribe = subscribeToDataChanges((e) => {
-    if (e.type === "tj.accounts.changed") {
-      load();
-    } else if (e.type === "tj.account.selected") {
-      select(e.detail.id);
-    }
-  });
-
-  // Отписка при размонтировании компонента
-  return () => {
-    unsubscribe();
-  };
-}
 
   // Public API
   window.AccountsUI = Object.assign(window.AccountsUI || {}, {

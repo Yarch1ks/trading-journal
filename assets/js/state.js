@@ -114,7 +114,7 @@ export const Selectors = {
       id: a.id || a.slug || a.name,
       name: a.name || a.slug || "Account",
       currency: a.currency || "USD",
-      startingEquity: Number(a.starting_equity ?? a.balance ?? 0)
+      startingEquity: Number(a.starting_equity ?? a.starting_balance ?? a.balance ?? 0)
     }));
 
     // Инициализация выбранного аккаунта
@@ -218,6 +218,7 @@ export async function createTrade(ui) {
     rr: ui.r ?? 0,
     risk_pct: ui.riskPct ?? 0,
     risk_amount_usd: ui.riskAmountUsd ?? 0,
+    net_result_usd: ui.pnl ?? 0,
     notes: ui.notes || ""
   };
   const { data, error } = await client.from("trades_new").insert(row).select().single();
@@ -243,6 +244,7 @@ export async function updateTrade(id, ui) {
   if (ui.r !== undefined) patch.rr = ui.r ?? 0;
   if (ui.riskPct !== undefined) patch.risk_pct = ui.riskPct ?? 0;
   if (ui.riskAmountUsd !== undefined) patch.risk_amount_usd = ui.riskAmountUsd ?? 0;
+  if (ui.pnl !== undefined) patch.net_result_usd = ui.pnl;
   if (ui.notes !== undefined) patch.notes = ui.notes || "";
   const { error } = await client.from("trades_new").update(patch).eq("id", id);
   if (error) throw error;
