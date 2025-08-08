@@ -59,7 +59,7 @@ body {
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 20;
+  z-index: 100;
 }
 /* Pro header styling */
 .app-header--pro {
@@ -90,7 +90,15 @@ body {
   border: 1px solid var(--border); background: transparent; color: var(--text);
   cursor: pointer;
 }
-.icon-btn:hover { background: var(--elev-2); }
+.icon-btn:hover { 
+  background: var(--elev-2); 
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.icon-btn:active { 
+  transform: translateY(0);
+  box-shadow: none;
+}
 .pill.live {
   font-size: 12px; padding: 6px 10px; border-radius: 999px;
   background: rgba(59,130,246,.12); color: var(--primary);
@@ -138,7 +146,7 @@ body {
   border-radius: 10px;
   padding: 6px;
   display: none;
-  z-index: 50;
+  z-index: 150;
 }
 .dropdown.open .dropdown-menu { display: block; }
 .dropdown-menu li {
@@ -146,9 +154,11 @@ body {
   padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
+  transition: background var(--transition);
 }
 .dropdown-menu li:hover { background: var(--elev-2); }
 .dropdown-menu li.active { background: rgba(59,130,246,.15); color: var(--primary); font-weight: 600; }
+.dropdown-menu li:active { transform: scale(0.98); }
 
 /* User */
 .user { display: inline-flex; align-items: center; gap: 8px; margin-left: 8px; }
@@ -181,11 +191,18 @@ html[data-theme="dark"] .icon-sun { opacity: .4; }
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
 .btn.ghost { background: transparent; color: var(--text); border-color: var(--border); }
 .btn.ghost:hover { background: var(--elev-2); }
+.btn.ghost:disabled { background: transparent; opacity: 0.5; }
+.btn.ghost:disabled:hover { background: transparent; }
 .btn.xs { padding: 6px 10px; font-size: 12px; }
 .btn.primary { background: var(--primary); }
-.btn.secondary { background: var(--secondary); }
+.btn.secondary { background: var(--accent); }
 .btn.danger { background: var(--red); }
 .btn.success { background: var(--green); }
 .btn.danger:hover, .btn.success:hover {
@@ -239,7 +256,7 @@ html[data-theme="light"] .stack {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 200;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
 }
