@@ -16,28 +16,68 @@ const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 
 // Sidebar controls
-if (sbBurger) sbBurger.addEventListener("click", () => {
+if (sbBurger) sbBurger.addEventListener("click", (e) => {
+  e.stopPropagation();
   sidebar?.classList.add("open");
-  document.documentElement.classList.add("sb-open");
+  document.body.classList.add("sidebar-open");
 });
-if (sbClose) sbClose.addEventListener("click", () => {
+if (sbClose) sbClose.addEventListener("click", (e) => {
+  e.stopPropagation();
   sidebar?.classList.remove("open");
-  document.documentElement.classList.remove("sb-open");
+  document.body.classList.remove("sidebar-open");
 });
+
+// Close sidebar when clicking overlay
 document.addEventListener("click", (e) => {
-  const open = document.documentElement.classList.contains("sb-open");
-  if (!open) return;
-  if (sidebar && !sidebar.contains(e.target) && e.target !== sbBurger) {
+  if (sidebar && sidebar.classList.contains("open") && 
+      !sidebar.contains(e.target) && 
+      e.target !== sbBurger) {
     sidebar.classList.remove("open");
-    document.documentElement.classList.remove("sb-open");
+    document.body.classList.remove("sidebar-open");
   }
 });
+
+// Prevent sidebar clicks from closing the sidebar
+if (sidebar) {
+  sidebar.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}
 // highlight active link
 function setActiveNav(path) {
   document.querySelectorAll(".sb-link").forEach(a => {
     const href = a.getAttribute("href") || "";
-    a.classList.toggle("active", href === "#/" + path);
+    // Handle both SPA routes and external links
+    const isCurrentRoute = href === "#/" + path || 
+                          (href.startsWith("http") && window.location.pathname === href.replace(/^.*\/\/[^\/]+/, ""));
+    a.classList.toggle("active", isCurrentRoute);
   });
+}
+
+// Handle navigation for SPA links
+function handleSpaNavigation(e) {
+  const link = e.target.closest(".sb-link");
+  if (!link) return;
+  
+  e.preventDefault();
+  const href = link.getAttribute("href");
+  
+  if (href.startsWith("#/")) {
+    // SPA route
+    window.location.hash = href;
+  } else if (href.startsWith("http")) {
+    // External link
+    window.open(href, "_blank");
+  } else {
+    // Local page
+    window.location.href = href;
+  }
+  
+  // Close sidebar on mobile after navigation
+  if (window.innerWidth <= 768 && sidebar) {
+    sidebar.classList.remove("open");
+    document.body.classList.remove("sidebar-open");
+  }
 }
 function mountPage(path) {
   setActiveNav(path);
@@ -119,7 +159,14 @@ function route() {
   mountPage(path);
 }
 window.addEventListener("hashchange", route);
-document.addEventListener("DOMContentLoaded", route);
+document.addEventListener("DOMContentLoaded", () => {
+  route();
+  
+  // Add navigation handlers to sidebar links
+  document.querySelectorAll(".sb-link").forEach(link => {
+    link.addEventListener("click", handleSpaNavigation);
+  });
+});
 
 // DOM refs
 const themeToggle = document.getElementById("themeToggle");
