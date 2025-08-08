@@ -221,7 +221,6 @@ export async function createTrade(ui) {
     rr: ui.r ?? 0,
     risk_pct: ui.riskPct ?? 0,
     risk_amount_usd: ui.riskAmountUsd ?? 0,
-    net_result_usd: ui.pnl ?? 0,
     notes: ui.notes || ""
   };
   const { data, error } = await client.from("trades_new").insert(row).select().single();
@@ -248,8 +247,8 @@ export async function updateTrade(id, ui) {
   if (ui.r !== undefined) patch.rr = ui.r ?? 0;
   if (ui.riskPct !== undefined) patch.risk_pct = ui.riskPct ?? 0;
   if (ui.riskAmountUsd !== undefined) patch.risk_amount_usd = ui.riskAmountUsd ?? 0;
-  if (ui.pnl !== undefined) patch.net_result_usd = ui.pnl;
   if (ui.notes !== undefined) patch.notes = ui.notes || "";
+  // НЕ включаем net_result_usd в патч, так как это вычисляемое поле
   const { error } = await client.from("trades_new").update(patch).eq("id", id);
   if (error) throw error;
   const localPatch = { id };
@@ -259,7 +258,6 @@ export async function updateTrade(id, ui) {
   if (ui.symbol) localPatch.symbol = ui.symbol;
   if (ui.r !== undefined) localPatch.r = ui.r;
   if (ui.notes !== undefined) localPatch.notes = ui.notes;
-  if (ui.pnl !== undefined) localPatch.pnl = ui.pnl;
   // Используем иммутабельное обновление
   DataStore.trades = DataStore.trades.map(t => 
     t.id === id ? { ...t, ...localPatch } : t
@@ -375,7 +373,7 @@ export function filterTradesByPeriod(trades, period) {
   const now = new Date();
   let from;
   if (period === "1D") {
-    from = date.startOfDay(now); // Используем утилиту для начала дня
+    from = startOfDay(now); // Используем утилиту для начала дня
   } else if (period === "1W") {
     from = new Date(now); from.setDate(now.getDate() - 7);
   } else if (period === "1M") {
