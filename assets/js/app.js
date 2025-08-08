@@ -221,6 +221,9 @@ function init() {
     initCharts();
     renderAll();
 
+    // Подписка на изменения данных
+    subscribeToDataChanges();
+
     status.textContent = "Dashboard OK";
     setTimeout(() => { const n = document.getElementById("tj-status"); if (n) n.remove(); }, 1500);
   } catch (e) {
@@ -243,6 +246,21 @@ function init() {
     }
     box.textContent = "Dashboard error. See console.";
   }
+}
+
+function subscribeToDataChanges() {
+  const unsubscribe = subscribeToDataChanges((e) => {
+    if (e.type === "tj.accounts.changed" || e.type === "tj.trades.changed") {
+      renderAll();
+    } else if (e.type === "tj.account.selected") {
+      renderAll();
+    }
+  });
+
+  // Отписка при размонтировании компонента
+  return () => {
+    unsubscribe();
+  };
 }
 
 function hydrateSelectors() {

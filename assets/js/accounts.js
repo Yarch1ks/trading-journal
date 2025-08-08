@@ -210,241 +210,256 @@
     formEl.elements.notes.value = acc?.notes || "";
   }
 
-  function injectModal() {
-    console.debug("Accounts: injectModal start");
-    if (document.getElementById("accountsModalBackdrop")) {
-      console.debug("Accounts: already injected");
+function injectModal() {
+  console.debug("Accounts: injectModal start");
+  if (document.getElementById("accountsModalBackdrop")) {
+    console.debug("Accounts: already injected");
+    return;
+  }
+  injectStylesOnce();
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = TEMPLATE;
+  const node = wrapper.firstElementChild;
+  document.body.appendChild(node);
+  console.debug("Accounts: injected backdrop =", !!document.getElementById("accountsModalBackdrop"));
+
+  // Wire basic open/close
+  const backdrop = document.getElementById("accountsModalBackdrop");
+  const closeBtn = document.getElementById("accountsCloseBtn");
+  const cancelBtn = document.getElementById("accountCancelBtn");
+  const listEl = document.getElementById("accountsList");
+  const addBtn = document.getElementById("accountAddBtn");
+  const syncAllBtn = document.getElementById("accountSyncAllBtn");
+  const formEl = document.getElementById("accountForm");
+  const deleteBtn = document.getElementById("accountDeleteBtn");
+  const toggleBtn = document.getElementById("accountToggleBtn");
+  const syncBtn = document.getElementById("accountSyncBtn");
+  const editorTitle = document.getElementById("accountEditorTitle");
+
+  // Guard against missing nodes to avoid null.addEventListener errors
+  const safeOn = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
+
+  let state = {
+    userId: null,
+    items: [],
+    selectedId: null,
+  };
+
+  async function load() {
+    const client = getClient();
+    if (!client) {
+      listEl.innerHTML = `<li class="acc-item muted">Supabase client not initialized</li>`;
+      [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
+        if (el) el.disabled = true;
+      });
+      if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = true));
+      editorTitle.textContent = "Supabase client not initialized";
+      // Try lazy init again shortly in case auth.js loads late
+      setTimeout(load, 300);
       return;
     }
-    injectStylesOnce();
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = TEMPLATE;
-    const node = wrapper.firstElementChild;
-    document.body.appendChild(node);
-    console.debug("Accounts: injected backdrop =", !!document.getElementById("accountsModalBackdrop"));
-
-    // Wire basic open/close
-    const backdrop = document.getElementById("accountsModalBackdrop");
-    const closeBtn = document.getElementById("accountsCloseBtn");
-    const cancelBtn = document.getElementById("accountCancelBtn");
-    const listEl = document.getElementById("accountsList");
-    const addBtn = document.getElementById("accountAddBtn");
-    const syncAllBtn = document.getElementById("accountSyncAllBtn");
-    const formEl = document.getElementById("accountForm");
-    const deleteBtn = document.getElementById("accountDeleteBtn");
-    const toggleBtn = document.getElementById("accountToggleBtn");
-    const syncBtn = document.getElementById("accountSyncBtn");
-    const editorTitle = document.getElementById("accountEditorTitle");
-
-    // Guard against missing nodes to avoid null.addEventListener errors
-    const safeOn = (el, ev, fn) => { if (el) el.addEventListener(ev, fn); };
-
-    let state = {
-      userId: null,
-      items: [],
-      selectedId: null,
-    };
-
-    async function load() {
-      const client = getClient();
-      if (!client) {
-        listEl.innerHTML = `<li class="acc-item muted">Supabase client not initialized</li>`;
-        [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
-          if (el) el.disabled = true;
-        });
-        if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = true));
-        editorTitle.textContent = "Supabase client not initialized";
-        // Try lazy init again shortly in case auth.js loads late
-        setTimeout(load, 300);
-        return;
-      }
-      [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
-        if (el) el.disabled = false;
-      });
-      if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = false));
-      if (!state.userId) state.userId = await fetchUserId();
-      const { data, error } = await client.from("accounts").select("*").order("created_at", { ascending: true });
-      if (error) {
-        console.error("accounts.load failed", error);
-        return;
-      }
-      state.items = data || [];
-      if (state.items.length && !state.selectedId) state.selectedId = state.items[0].id;
-      if (state.selectedId && window.setSelectedAccount) window.setSelectedAccount(state.selectedId);
-      renderList();
-      const cur = state.items.find(a => a.id === state.selectedId);
-      fillForm(formEl, cur || null);
-      editorTitle.textContent = cur ? "Edit Account" : "New Account";
-      toggleBtn.textContent = cur && cur.status === "disabled" ? "Enable" : "Disable";
+    [addBtn, syncAllBtn, deleteBtn, toggleBtn, syncBtn].forEach((el) => {
+      if (el) el.disabled = false;
+    });
+    if (formEl) Array.from(formEl.elements).forEach((el) => (el.disabled = false));
+    if (!state.userId) state.userId = await fetchUserId();
+    const { data, error } = await client.from("accounts").select("*").order("created_at", { ascending: true });
+    if (error) {
+      console.error("accounts.load failed", error);
+      return;
     }
-
-    function renderList() {
-      listEl.innerHTML = state.items.map(a => accountItemTpl(a, state.selectedId)).join("");
-    }
-
-    function select(id) {
-      state.selectedId = id;
-      if (window.setSelectedAccount) window.setSelectedAccount(id);
-      renderList();
-      const acc = state.items.find(a => a.id === id);
-      fillForm(formEl, acc || null);
-      editorTitle.textContent = acc ? "Edit Account" : "New Account";
-      toggleBtn.textContent = acc && acc.status === "disabled" ? "Enable" : "Disable";
-    }
-
-    function close() {
-      const b = document.getElementById("accountsModalBackdrop");
-      if (!b) return;
-      b.hidden = true;
-      b.setAttribute("aria-hidden", "true");
-    }
-    async function openAndLoad() {
-      console.debug("Accounts: openAndLoad");
-      let el = document.getElementById("accountsModalBackdrop");
-      if (!el) {
-        console.debug("Accounts: backdrop missing, injecting…");
-        injectModal();
-        el = document.getElementById("accountsModalBackdrop");
-      }
-      if (!el) {
-        console.warn("Accounts: cannot create backdrop");
-        return;
-      }
-      el.hidden = false;
-      el.setAttribute("aria-hidden", "false");
-      await load();
-    }
-    // Close handlers (ensure they always work even after re-injection)
-    document.addEventListener("click", (e) => {
-      const b = document.getElementById("accountsModalBackdrop");
-      if (!b || b.hidden) return;
-      const target = e.target;
-      // backdrop click to close
-      if (target === b) {
-        close();
-        return;
-      }
-      // header X button
-      if (target && (target.id === "accountsCloseBtn" || target.closest && target.closest("#accountsCloseBtn"))) {
-        close();
-      }
-      // footer Cancel button
-      if (target && (target.id === "accountCancelBtn" || target.closest && target.closest("#accountCancelBtn"))) {
-        close();
-      }
-    });
-
-    // expose a bound loader to call from public API without custom events
-    window.AccountsUI = Object.assign(window.AccountsUI || {}, {
-      _openAndLoad: () => openAndLoad()
-    });
-
-    // List interactions
-    safeOn(listEl, "click", (e) => {
-      const li = e.target.closest(".acc-item");
-      if (li) select(li.dataset.id);
-    });
-
-    // Toolbar actions
-    safeOn(addBtn, "click", async () => {
-      // prepare new blank row locally and select it; insert on Save
-      state.selectedId = null;
-      fillForm(formEl, { name: "", exchange: "binance-futures", status: "active", notes: "" });
-      editorTitle.textContent = "New Account";
-      toggleBtn.textContent = "Disable";
-      renderList();
-    });
-
-    safeOn(syncAllBtn, "click", async () => {
-      const client = getClient();
-      if (!client) return;
-      // mark synced for all user's accounts
-      const { error } = await client
-        .from("accounts")
-        .update({ last_sync_at: new Date().toISOString() })
-        .eq("user_id", state.userId);
-      if (error) console.error("Sync all failed", error);
-      await load();
-    });
-
-    // Form submit (Create or Update)
-    safeOn(formEl, "submit", async (e) => {
-      e.preventDefault();
-      const client = getClient();
-      if (!client) return;
-      const payload = readForm(formEl);
-
-      if (!payload.name) {
-        alert("Name is required");
-        return;
-      }
-
-      if (!state.selectedId) {
-        // create
-        const row = { ...payload, user_id: state.userId };
-        const { data, error } = await client.from("accounts").insert(row).select("*").single();
-        if (error) {
-          console.error("Create account failed", error);
-          alert(error.message);
-          return;
-        }
-        state.selectedId = data.id;
-      } else {
-        // update
-        const { error } = await client.from("accounts").update(payload).eq("id", state.selectedId);
-        if (error) {
-          console.error("Update account failed", error);
-          alert(error.message);
-          return;
-        }
-      }
-      await load();
-    });
-
-    safeOn(deleteBtn, "click", async () => {
-      if (!state.selectedId) return;
-      if (!confirm("Удалить аккаунт?")) return;
-      const client = getClient();
-      const { error } = await client.from("accounts").delete().eq("id", state.selectedId);
-      if (error) {
-        console.error("Delete failed", error);
-        alert(error.message);
-        return;
-      }
-      state.selectedId = null;
-      await load();
-    });
-
-    safeOn(toggleBtn, "click", async () => {
-      const client = getClient();
-      const cur = state.items.find(a => a.id === state.selectedId);
-      if (!client || !cur) return;
-      const next = cur.status === "disabled" ? "active" : "disabled";
-      const { error } = await client.from("accounts").update({ status: next }).eq("id", cur.id);
-      if (error) {
-        console.error("Toggle failed", error);
-        alert(error.message);
-        return;
-      }
-      await load();
-    });
-
-    safeOn(syncBtn, "click", async () => {
-      const client = getClient();
-      if (!client || !state.selectedId) return;
-      // Use RPC account_sync to set last_sync_at = now()
-      const { error } = await client.rpc("account_sync", { p_id: state.selectedId });
-      if (error) {
-        console.error("Sync failed", error);
-        alert(error.message);
-        return;
-      }
-      await load();
-    });
-
-    // Expose handlers
-    window.AccountsUI = Object.assign(window.AccountsUI || {}, { close /* , open: openAndLoad */ });
+    state.items = data || [];
+    if (state.items.length && !state.selectedId) state.selectedId = state.items[0].id;
+    if (state.selectedId && window.setSelectedAccount) window.setSelectedAccount(state.selectedId);
+    renderList();
+    const cur = state.items.find(a => a.id === state.selectedId);
+    fillForm(formEl, cur || null);
+    editorTitle.textContent = cur ? "Edit Account" : "New Account";
+    toggleBtn.textContent = cur && cur.status === "disabled" ? "Enable" : "Disable";
   }
+
+  function renderList() {
+    listEl.innerHTML = state.items.map(a => accountItemTpl(a, state.selectedId)).join("");
+  }
+
+  function select(id) {
+    state.selectedId = id;
+    if (window.setSelectedAccount) window.setSelectedAccount(id);
+    renderList();
+    const acc = state.items.find(a => a.id === id);
+    fillForm(formEl, acc || null);
+    editorTitle.textContent = acc ? "Edit Account" : "New Account";
+    toggleBtn.textContent = acc && acc.status === "disabled" ? "Enable" : "Disable";
+  }
+
+  function close() {
+    const b = document.getElementById("accountsModalBackdrop");
+    if (!b) return;
+    b.hidden = true;
+    b.setAttribute("aria-hidden", "true");
+  }
+  async function openAndLoad() {
+    console.debug("Accounts: openAndLoad");
+    let el = document.getElementById("accountsModalBackdrop");
+    if (!el) {
+      console.debug("Accounts: backdrop missing, injecting…");
+      injectModal();
+      el = document.getElementById("accountsModalBackdrop");
+    }
+    if (!el) {
+      console.warn("Accounts: cannot create backdrop");
+      return;
+    }
+    el.hidden = false;
+    el.setAttribute("aria-hidden", "false");
+    await load();
+  }
+  // Close handlers (ensure they always work even after re-injection)
+  document.addEventListener("click", (e) => {
+    const b = document.getElementById("accountsModalBackdrop");
+    if (!b || b.hidden) return;
+    const target = e.target;
+    // backdrop click to close
+    if (target === b) {
+      close();
+      return;
+    }
+    // header X button
+    if (target && (target.id === "accountsCloseBtn" || target.closest && target.closest("#accountsCloseBtn"))) {
+      close();
+    }
+    // footer Cancel button
+    if (target && (target.id === "accountCancelBtn" || target.closest && target.closest("#accountCancelBtn"))) {
+      close();
+    }
+  });
+
+  // expose a bound loader to call from public API without custom events
+  window.AccountsUI = Object.assign(window.AccountsUI || {}, {
+    _openAndLoad: () => openAndLoad()
+  });
+
+  // List interactions
+  safeOn(listEl, "click", (e) => {
+    const li = e.target.closest(".acc-item");
+    if (li) select(li.dataset.id);
+  });
+
+  // Toolbar actions
+  safeOn(addBtn, "click", async () => {
+    // prepare new blank row locally and select it; insert on Save
+    state.selectedId = null;
+    fillForm(formEl, { name: "", exchange: "binance-futures", status: "active", notes: "" });
+    editorTitle.textContent = "New Account";
+    toggleBtn.textContent = "Disable";
+    renderList();
+  });
+
+  safeOn(syncAllBtn, "click", async () => {
+    const client = getClient();
+    if (!client) return;
+    // mark synced for all user's accounts
+    const { error } = await client
+      .from("accounts")
+      .update({ last_sync_at: new Date().toISOString() })
+      .eq("user_id", state.userId);
+    if (error) console.error("Sync all failed", error);
+    await load();
+  });
+
+  // Form submit (Create or Update)
+  safeOn(formEl, "submit", async (e) => {
+    e.preventDefault();
+    const client = getClient();
+    if (!client) return;
+    const payload = readForm(formEl);
+
+    if (!payload.name) {
+      alert("Name is required");
+      return;
+    }
+
+    if (!state.selectedId) {
+      // create
+      const row = { ...payload, user_id: state.userId };
+      const { data, error } = await client.from("accounts").insert(row).select("*").single();
+      if (error) {
+        console.error("Create account failed", error);
+        alert(error.message);
+        return;
+      }
+      state.selectedId = data.id;
+    } else {
+      // update
+      const { error } = await client.from("accounts").update(payload).eq("id", state.selectedId);
+      if (error) {
+        console.error("Update account failed", error);
+        alert(error.message);
+        return;
+      }
+    }
+    await load();
+  });
+
+  safeOn(deleteBtn, "click", async () => {
+    if (!state.selectedId) return;
+    if (!confirm("Удалить аккаунт?")) return;
+    const client = getClient();
+    const { error } = await client.from("accounts").delete().eq("id", state.selectedId);
+    if (error) {
+      console.error("Delete failed", error);
+      alert(error.message);
+      return;
+    }
+    state.selectedId = null;
+    await load();
+  });
+
+  safeOn(toggleBtn, "click", async () => {
+    const client = getClient();
+    const cur = state.items.find(a => a.id === state.selectedId);
+    if (!client || !cur) return;
+    const next = cur.status === "disabled" ? "active" : "disabled";
+    const { error } = await client.from("accounts").update({ status: next }).eq("id", cur.id);
+    if (error) {
+      console.error("Toggle failed", error);
+      alert(error.message);
+      return;
+    }
+    await load();
+  });
+
+  safeOn(syncBtn, "click", async () => {
+    const client = getClient();
+    if (!client || !state.selectedId) return;
+    // Use RPC account_sync to set last_sync_at = now()
+    const { error } = await client.rpc("account_sync", { p_id: state.selectedId });
+    if (error) {
+      console.error("Sync failed", error);
+      alert(error.message);
+      return;
+    }
+    await load();
+  });
+
+  // Expose handlers
+  window.AccountsUI = Object.assign(window.AccountsUI || {}, { close /* , open: openAndLoad */ });
+}
+
+function subscribeToDataChanges() {
+  const unsubscribe = subscribeToDataChanges((e) => {
+    if (e.type === "tj.accounts.changed") {
+      load();
+    } else if (e.type === "tj.account.selected") {
+      select(e.detail.id);
+    }
+  });
+
+  // Отписка при размонтировании компонента
+  return () => {
+    unsubscribe();
+  };
+}
 
   // Public API
   window.AccountsUI = Object.assign(window.AccountsUI || {}, {

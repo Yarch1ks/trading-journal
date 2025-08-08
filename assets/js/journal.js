@@ -88,6 +88,25 @@ async function refreshTrades() {
   }
 }
 
+// Подписка на изменения данных
+function subscribeToDataChanges() {
+  const unsubscribe = subscribeToDataChanges((e) => {
+    if (e.type === "tj.trades.changed") {
+      refreshTrades();
+    } else if (e.type === "tj.accounts.changed") {
+      renderAll();
+    } else if (e.type === "tj.account.selected") {
+      pageIdx = 0;
+      renderAll();
+    }
+  });
+
+  // Отписка при размонтировании компонента
+  return () => {
+    unsubscribe();
+  };
+}
+
 function setLoading(isLoading) {
   if (btnAdd) btnAdd.disabled = isLoading;
   if (btnImport) btnImport.disabled = isLoading;
@@ -99,7 +118,6 @@ function setLoading(isLoading) {
 function toast(msg, type = "info") {
   console[type === "error" ? "error" : "log"](msg);
 }
-
 /* ====================== Date utils (DD-MM-YYYY) ====================== */
 function toISOFromDDMMYYYY(s) {
   if (!s) return null;

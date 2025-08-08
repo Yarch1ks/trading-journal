@@ -23,10 +23,18 @@ export const DataStore = {
 
 // UI session state
 export const Session = {
-  selectedAccountId: null,
+  selectedAccountId: DataStore.accounts[0]?.id || null,
   period: "ALL",
   notes: DataStore.notes
 };
+
+// Глобальный выбор аккаунта + событие для кросс-страничной синхронизации
+export function setSelectedAccount(id) {
+  Session.selectedAccountId = id || null;
+  try { localStorage.setItem("tj.selectedAccountId", id || ""); } catch {}
+  // уведомить все страницы/скрипты
+  document.dispatchEvent(new CustomEvent("tj.account.selected", { detail: { id } }));
+}
 
 // Runtime event helpers (lightweight bus)
 export const Events = {
@@ -111,6 +119,17 @@ async function getUserId() {
   return data?.user?.id;
 }
 
+// Функция для подписки на изменения данных
+export function subscribeToDataChanges(callback) {
+  document.addEventListener("tj.trades.changed", callback);
+  document.addEventListener("tj.accounts.changed", callback);
+  document.addEventListener("tj.account.selected", callback);
+  return () => {
+    document.removeEventListener("tj.trades.changed", callback);
+    document.removeEventListener("tj.accounts.changed", callback);
+    document.removeEventListener("tj.account.selected", callback);
+  };
+}
 export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
   const uid = await getUserId();
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
