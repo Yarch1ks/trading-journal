@@ -1,5 +1,5 @@
 import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade, setSelectedAccount, subscribeToTrades } from "./state.js";
-import { fmt } from "./utils.js";
+import * as fmtUtils from "./utils.js";
 
 const DATE_FORMAT = "DD-MM-YYYY";
 
@@ -78,7 +78,6 @@ async function refreshTrades() {
       limit: Number(pageSizeSel?.value) || 50,
       offset: pageIdx * (Number(pageSizeSel?.value) || 50)
     });
-    DataStore.trades = rows;
     renderAll();
   } catch (e) {
     console.error("Failed to load trades from Supabase", e);
@@ -87,7 +86,6 @@ async function refreshTrades() {
     setLoading(false);
   }
 }
-
 
 function setLoading(isLoading) {
   if (btnAdd) btnAdd.disabled = isLoading;
@@ -100,6 +98,7 @@ function setLoading(isLoading) {
 function toast(msg, type = "info") {
   console[type === "error" ? "error" : "log"](msg);
 }
+
 /* ====================== Date utils (DD-MM-YYYY) ====================== */
 function toISOFromDDMMYYYY(s) {
   if (!s) return null;
@@ -121,12 +120,14 @@ function fromISOToDDMMYYYY(s) {
   const yyyy = d.getFullYear();
   return `${dd}-${mm}-${yyyy}`;
 }
+
 function toISOWithTime(dateDDMMYYYY, timeHHMM) {
   const d = toISOFromDDMMYYYY(dateDDMMYYYY);
   if (!d) return null;
   const hhmm = /^\d{2}:\d{2}$/.test((timeHHMM || "").trim()) ? timeHHMM.trim() : "00:00";
   return `${d}T${hhmm}:00.000Z`;
 }
+
 function fromISOToHHMM(s) {
   if (!s) return "";
   const d = new Date(s);
@@ -282,6 +283,7 @@ function validateTrade(t) {
   if (!["win","be","loss"].includes(t.result)) return "Result некорректен";
   return null;
 }
+
 /** Pagination helper */
 function paginate(rows) {
   const start = pageIdx * pageSize;
@@ -302,7 +304,7 @@ function renderTable(rows) {
       <td>${tr.symbol || ""}</td>
       <td>${tr.strategy || ""}</td>
       <td class="${(tr.r||0) >= 0 ? "r-pos" : "r-neg"}">${rr2}RR / ${net2}$</td>
-      <td class="${(tr.pnl||0) >= 0 ? "r-pos" : "r-neg"}">${(tr.pnl||0) >= 0 ? "+" : "−"}${fmt.currency(Math.abs(Number(tr.pnl||0)), Selectors.getAccounts().find(a => a.id === tr.accountId)?.currency || DataStore.currency)}</td>
+      <td class="${(tr.pnl||0) >= 0 ? "r-pos" : "r-neg"}">${(tr.pnl||0) >= 0 ? "+" : "−"}${fmtUtils.fmt.currency(Math.abs(Number(tr.pnl||0)), Selectors.getAccounts().find(a => a.id === tr.accountId)?.currency || DataStore.currency)}</td>
       <td>${(tr.notes || "").slice(0,80)}</td>
       <td style="display:flex;gap:6px;">
         <button class="btn xs ghost act-edit">Редактировать</button>
@@ -429,6 +431,7 @@ function exportCsv(rows) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
 /** Filtering with period/symbol/strategy/result */
 function getFilteredTrades() {
   const accId = Session.selectedAccountId;
@@ -495,7 +498,7 @@ function renderKpis(rows) {
   if (kCount) kCount.textContent = String(count);
   if (kWR) kWR.textContent = (wr).toFixed(1) + "%";
   if (kR) kR.textContent = (totalR >= 0 ? "+" : "−") + Math.abs(totalR).toFixed(2);
-  if (kPnl) kPnl.textContent = (totalPnl >= 0 ? "+" : "−") + fmt.currency(Math.abs(totalPnl), DataStore.currency);
+  if (kPnl) kPnl.textContent = (totalPnl >= 0 ? "+" : "−") + fmtUtils.fmt.currency(Math.abs(totalPnl), DataStore.currency);
 }
 
 /** Render all */
@@ -708,22 +711,22 @@ async function init() {
       window.persistToStorage = () => {};
     }
 
-  // первичная загрузка из Supabase
-  await refreshTrades();
+    // первичная загрузка из Supabase
+    await refreshTrades();
 
-  // Жёсткая подгрузка аккаунтов из Supabase как источника истины,
-  // чтобы селект показывал ровно те аккаунты, что на странице "Аккаунты".
-  try {
-    if (typeof Selectors?.refreshAccountsFromSupabase === "function") {
-      await Selectors.refreshAccountsFromSupabase();
-      subscribeToTrades();
-      console.log("Journal: accounts loaded from Supabase via Selectors.refreshAccountsFromSupabase");
-    } else {
-      console.warn("Journal: no explicit loader for Supabase accounts; using Selectors.getAccounts()");
+    // Жёсткая подгрузка аккаунтов из Supabase как источника истины,
+    // чтобы селект показывал ровно те аккаунты, что на странице "Аккаунты".
+    try {
+      if (typeof Selectors?.refreshAccountsFromSupabase === "function") {
+        await Selectors.refreshAccountsFromSupabase();
+        subscribeToTrades();
+        console.log("Journal: accounts loaded from Supabase via Selectors.refreshAccountsFromSupabase");
+      } else {
+        console.warn("Journal: no explicit loader for Supabase accounts; using Selectors.getAccounts()");
+      }
+    } catch (e) {
+      console.error("Journal: failed to load accounts from Supabase", e);
     }
-  } catch (e) {
-    console.error("Journal: failed to load accounts from Supabase", e);
-  }
 
     // Safe hydration for dropdowns
     // Добавим жёсткую инициализацию даже если accDD/accLbl отсутствуют
