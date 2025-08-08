@@ -15,22 +15,49 @@ const sbClose = document.getElementById("sbClose");
 const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 
-// Sidebar controls
+// Sidebar controls - переключение между expanded и collapsed
+function toggleSidebar() {
+  if (!sidebar) return;
+  
+  sidebar.classList.toggle("collapsed");
+  const isCollapsed = sidebar.classList.contains("collapsed");
+  
+  // Обновляем класс на body для правильных отступов
+  if (isCollapsed) {
+    document.body.classList.add("sidebar-collapsed");
+  } else {
+    document.body.classList.remove("sidebar-collapsed");
+  }
+  
+  // Сохраняем состояние в localStorage
+  try {
+    localStorage.setItem("tj.sidebar", isCollapsed ? "collapsed" : "expanded");
+  } catch (e) {
+    console.warn("Failed to save sidebar state:", e);
+  }
+  
+  // На мобильных устройствах добавляем overflow hidden при раскрытой панели
+  if (window.innerWidth <= 768) {
+    if (isCollapsed) {
+      document.body.classList.remove("sidebar-mobile-open");
+    } else {
+      document.body.classList.add("sidebar-mobile-open");
+    }
+  }
+}
+
 if (sbBurger) {
   sbBurger.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.classList.add("active");
-    sidebar?.classList.add("open");
-    document.body.classList.add("sidebar-open");
-    
-    // Добавляем визуальную обратную связь
+    toggleSidebar();
     setTimeout(() => {
       sbBurger.classList.remove("active");
     }, 200);
   });
   
-  // Добавляем touch support для мобильных устройств
+  // Touch support для мобильных устройств
   sbBurger.addEventListener("touchstart", (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,17 +68,16 @@ if (sbBurger) {
     e.preventDefault();
     e.stopPropagation();
     sbBurger.classList.remove("active");
-    sidebar?.classList.add("open");
-    document.body.classList.add("sidebar-open");
+    toggleSidebar();
   });
 }
 
+// Кнопка закрытия (сворачивает панель)
 if (sbClose) {
   sbClose.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopPropagation();
-    sidebar?.classList.remove("open");
-    document.body.classList.remove("sidebar-open");
+    toggleSidebar();
   });
   
   // Touch support для close кнопки
@@ -65,18 +91,19 @@ if (sbClose) {
     e.preventDefault();
     e.stopPropagation();
     sbClose.classList.remove("active");
-    sidebar?.classList.remove("open");
-    document.body.classList.remove("sidebar-open");
+    toggleSidebar();
   });
 }
 
-// Close sidebar when clicking overlay
+// Close sidebar when clicking outside (только на мобильных устройствах)
 document.addEventListener("click", (e) => {
-  if (sidebar && sidebar.classList.contains("open") && 
+  if (window.innerWidth > 768) return;
+  
+  if (sidebar && !sidebar.classList.contains("collapsed") && 
       !sidebar.contains(e.target) && 
-      !e.target.closest("#sbBurger")) {
-    sidebar.classList.remove("open");
-    document.body.classList.remove("sidebar-open");
+      !e.target.closest("#sbBurger") &&
+      !e.target.closest("#sbClose")) {
+    toggleSidebar();
   }
 });
 
@@ -87,13 +114,68 @@ if (sidebar) {
   });
 }
 
-// Добавляем обработчик для Escape键
+// Добавляем обработчик для Escape键 (только на мобильных устройствах)
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && sidebar?.classList.contains("open")) {
-    sidebar.classList.remove("open");
-    document.body.classList.remove("sidebar-open");
+  if (e.key === "Escape" && window.innerWidth <= 768 && 
+      sidebar && !sidebar.classList.contains("collapsed")) {
+    toggleSidebar();
   }
 });
+
+// Восстанавливаем состояние боковой панели при загрузке
+function restoreSidebarState() {
+  if (!sidebar) return;
+  
+  let isCollapsed = false;
+  
+  // Проверяем сохраненное состояние
+  try {
+    const savedState = localStorage.getItem("tj.sidebar");
+    isCollapsed = savedState === "collapsed";
+  } catch (e) {
+    console.warn("Failed to restore sidebar state:", e);
+  }
+  
+  // На мобильных устройствах по умолчанию свернута
+  if (window.innerWidth <= 768) {
+    isCollapsed = true;
+  }
+  
+  if (isCollapsed) {
+    sidebar.classList.add("collapsed");
+    document.body.classList.add("sidebar-collapsed");
+    if (window.innerWidth <= 768) {
+      document.body.classList.remove("sidebar-mobile-open");
+    }
+  } else {
+    document.body.classList.remove("sidebar-collapsed");
+  }
+}
+
+// Обработка изменения размера окна
+function handleResize() {
+  if (!sidebar) return;
+  
+  const isMobile = window.innerWidth <= 768;
+  const isCollapsed = sidebar.classList.contains("collapsed");
+  
+  // На мобильных устройствах всегда скрываем оверлей при изменении размера
+  if (isMobile) {
+    document.body.classList.remove("sidebar-mobile-open");
+  }
+  
+  // При переходе с мобильной на десктопную версию
+  if (!isMobile && isCollapsed) {
+    // На десктопе убираем класс мобильного оверлея
+    document.body.classList.remove("sidebar-mobile-open");
+  }
+}
+
+// Добавляем обработчик изменения размера окна
+window.addEventListener("resize", handleResize);
+
+// Вызываем восстановление состояния
+restoreSidebarState();
 // highlight active link
 function setActiveNav(path) {
   document.querySelectorAll(".sb-link").forEach(a => {
@@ -316,6 +398,9 @@ function init() {
     status.style.zIndex = "9999";
     status.textContent = "Init…";
     document.body.appendChild(status);
+
+    // Восстанавливаем состояние боковой панели
+    restoreSidebarState();
 
     hydrateSelectors();
     hydrateHeaderAccountSelect(); // ensure account selector exists and synced

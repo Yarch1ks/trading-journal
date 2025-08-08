@@ -89,12 +89,12 @@ async function refreshTrades() {
 }
 
 // Подписка на изменения данных
-function subscribeToDataChanges() {
-  const unsubscribe = subscribeToDataChanges((e) => {
+function subscribeToDataChanges(callback) {
+  const unsubscribe = subscribeToTrades((e) => {
     if (e.type === "tj.trades.changed") {
-      refreshTrades();
+      callback(e);
     } else if (e.type === "tj.accounts.changed") {
-      renderAll();
+      callback(e);
     } else if (e.type === "tj.account.selected") {
       pageIdx = 0;
       renderAll();
