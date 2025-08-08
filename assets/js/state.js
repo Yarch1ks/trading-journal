@@ -170,8 +170,29 @@ export async function createTrade(ui) {
   };
   const { data, error } = await client.from("trades_new").insert(row).select().single();
   if (error) throw error;
-  // сигнализируем об изменениях
-  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "create", id: data.id, accountId: row.account } }));
+  // локально добавляем строку в DataStore
+  const mapped = {
+    id: data.id,
+    accountId: data.account || row.account,
+    symbol: data.pair || row.pair || "",
+    strategy: "",
+    qty: 1,
+    r: Number(data.rr ?? row.rr ?? 0),
+    pnl: Number(data.net_result_usd ?? ui.pnl ?? 0),
+    entryAt: data.started_at ? String(data.started_at).slice(0, 10) : ui.entryAt ? String(ui.entryAt).slice(0, 10) : null,
+    exitAt: data.ended_at
+      ? String(data.ended_at).slice(0, 10)
+      : (ui.exitAt ? String(ui.exitAt).slice(0, 10) : (ui.entryAt ? String(ui.entryAt).slice(0, 10) : null)),
+    fees: 0,
+    notes: data.notes || row.notes || "",
+    tags: []
+  };
+  // Вставляем в начало, поскольку listTrades сортирует по дате убыванию
+  DataStore.trades.unshift(mapped);
+  // сигнализируем об изменениях с актуальными данными
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", {
+    detail: { type: "create", id: data.id, accountId: mapped.accountId, count: DataStore.trades.length }
+  }));
   return data.id;
 }
 
@@ -192,14 +213,37 @@ export async function updateTrade(id, ui) {
   if (ui.notes !== undefined) patch.notes = ui.notes || "";
   const { error } = await client.from("trades_new").update(patch).eq("id", id);
   if (error) throw error;
-  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "update", id } }));
+  // обновляем локальный объект
+  const idx = DataStore.trades.findIndex(t => t.id === id);
+  if (idx !== -1) {
+    const t = DataStore.trades[idx];
+    if (ui.entryAt) t.entryAt = String(ui.entryAt).slice(0, 10);
+    if (ui.exitAt !== undefined) t.exitAt = ui.exitAt ? String(ui.exitAt).slice(0, 10) : null;
+    if (ui.accountId) t.accountId = ui.accountId;
+    if (ui.symbol) t.symbol = ui.symbol;
+    if (ui.r !== undefined) t.r = ui.r ?? 0;
+    if (ui.pnl !== undefined) t.pnl = ui.pnl ?? 0;
+    if (ui.notes !== undefined) t.notes = ui.notes || "";
+  }
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", {
+    detail: { type: "update", id, accountId: DataStore.trades[idx]?.accountId, count: DataStore.trades.length }
+  }));
 }
 
 export async function deleteTrade(id) {
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
   const { error } = await client.from("trades_new").delete().eq("id", id);
   if (error) throw error;
-  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "delete", id } }));
+  // удаляем локально и повторно эмитим событие
+  const idx = DataStore.trades.findIndex(t => t.id === id);
+  let accountId = null;
+  if (idx !== -1) {
+    accountId = DataStore.trades[idx].accountId;
+    DataStore.trades.splice(idx, 1);
+  }
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", {
+    detail: { type: "delete", id, accountId, count: DataStore.trades.length }
+  }));
 }
 
 export function computeKpis(trades, startingEquity, currency) {
