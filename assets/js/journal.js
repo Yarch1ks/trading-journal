@@ -1,4 +1,4 @@
-import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade, setSelectedAccount } from "./state.js";
+import { DataStore, Session, Selectors, listTrades, createTrade, updateTrade, deleteTrade, setSelectedAccount, subscribeToTrades } from "./state.js";
 import { fmt } from "./utils.js";
 
 const DATE_FORMAT = "DD-MM-YYYY";
@@ -716,6 +716,7 @@ async function init() {
   try {
     if (typeof Selectors?.refreshAccountsFromSupabase === "function") {
       await Selectors.refreshAccountsFromSupabase();
+      subscribeToTrades();
       console.log("Journal: accounts loaded from Supabase via Selectors.refreshAccountsFromSupabase");
     } else {
       console.warn("Journal: no explicit loader for Supabase accounts; using Selectors.getAccounts()");
