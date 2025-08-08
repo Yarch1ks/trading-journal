@@ -538,20 +538,6 @@ body.sidebar-collapsed .dashboard {
   margin-left: var(--sidebar-w-collapsed);
 }
 
-.stack {
-  display: grid;
-  gap: 20px;
-  padding: 20px;
-  border-radius: 16px;
-  background: linear-gradient(0deg, rgba(0,0,0,0.02), rgba(0,0,0,0.02));
-  border: 1px solid var(--border);
-}
-
-html[data-theme="light"] .stack {
-  background: linear-gradient(0deg, rgba(0,0,0,0.01), rgba(0,0,0,0.01));
-  border: 1px solid var(--border-light);
-}
-
 .grid {
   display: grid;
   gap: 20px;
@@ -586,9 +572,23 @@ html[data-theme="light"] .stack {
 }
 
 .grid.two-col {
-  grid-template-columns: 1.8fr 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: start;
   gap: 24px;
+}
+
+.stack .card {
+  padding: 20px;
+}
+
+.stack .card .btn {
+  font-size: 13px;
+  padding: 10px 16px;
+}
+
+.stack .card .select select {
+  padding: 10px 14px;
+  font-size: 13px;
 }
 
 .stack .card {
