@@ -327,5 +327,47 @@
   <script src="assets/js/auth.js"></script>
   <script type="module" src="assets/js/app.js"></script>
   <script src="assets/js/accounts.js"></script>
+  <script>
+    // Global error handler
+    window.addEventListener('error', (e) => {
+      console.error('Global error:', e.error);
+    });
+
+    // Update last update time
+    function updateLastUpdateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('ru-RU', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      const updateEl = document.getElementById('lastUpdate');
+      if (updateEl) {
+        updateEl.textContent = timeString;
+      }
+    }
+
+    // Update time every second
+    updateLastUpdateTime();
+    setInterval(updateLastUpdateTime, 1000);
+
+    // Check Chart.js availability
+    if (typeof Chart === 'undefined') {
+      console.error('Chart.js is not loaded. Please check the script tag.');
+    }
+
+    // Check if all required modules are loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check if auth module is loaded
+      if (typeof window.auth === 'undefined') {
+        console.warn('Auth module is not loaded');
+      }
+
+      // Check if app module is loaded
+      if (typeof window.initApp === 'undefined') {
+        console.warn('App module is not loaded');
+      }
+    });
+  </script>
 </body>
 </html>

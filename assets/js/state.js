@@ -197,10 +197,13 @@ export async function listTrades({ accountId, limit = 100, offset = 0 } = {}) {
   const { data, error } = await q;
   if (error) throw error;
   const mapped = (data || []).map(mapRowToTrade);
-  DataStore.trades = mapped;
-  TradeSync.post({ type: "set", trades: mapped });
-  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { accountId, count: mapped.length } }));
-  return mapped;
+  // Обновляем хранилище без прямого присваивания
+  const existingIds = new Set(DataStore.trades.map(t => t.id));
+  const newTrades = mapped.filter(t => !existingIds.has(t.id));
+  DataStore.trades = [...newTrades, ...DataStore.trades.filter(t => existingIds.has(t.id))];
+  TradeSync.post({ type: "set", trades: DataStore.trades });
+  document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { accountId, count: DataStore.trades.length } }));
+  return DataStore.trades;
 }
 
 export async function createTrade(ui) {
@@ -224,7 +227,8 @@ export async function createTrade(ui) {
   const { data, error } = await client.from("trades_new").insert(row).select().single();
   if (error) throw error;
   const trade = mapRowToTrade(data);
-  DataStore.trades.unshift(trade);
+  // Используем иммутабельное добавление
+  DataStore.trades = [trade, ...DataStore.trades];
   TradeSync.post({ type: "create", trade });
   document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "create", id: trade.id, accountId: trade.accountId } }));
   return trade.id;
@@ -256,8 +260,10 @@ export async function updateTrade(id, ui) {
   if (ui.r !== undefined) localPatch.r = ui.r;
   if (ui.notes !== undefined) localPatch.notes = ui.notes;
   if (ui.pnl !== undefined) localPatch.pnl = ui.pnl;
-  const t = DataStore.trades.find(x => x.id === id);
-  if (t) Object.assign(t, localPatch);
+  // Используем иммутабельное обновление
+  DataStore.trades = DataStore.trades.map(t => 
+    t.id === id ? { ...t, ...localPatch } : t
+  );
   TradeSync.post({ type: "update", trade: localPatch });
   document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "update", id } }));
 }
@@ -266,8 +272,8 @@ export async function deleteTrade(id) {
   const client = window.supabaseClient || (window.auth && window.auth.supabase);
   const { error } = await client.from("trades_new").delete().eq("id", id);
   if (error) throw error;
-  const idx = DataStore.trades.findIndex(t => t.id === id);
-  if (idx >= 0) DataStore.trades.splice(idx, 1);
+  // Используем иммутабельное удаление
+  DataStore.trades = DataStore.trades.filter(t => t.id !== id);
   TradeSync.post({ type: "delete", id });
   document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "delete", id } }));
 }
@@ -369,7 +375,7 @@ export function filterTradesByPeriod(trades, period) {
   const now = new Date();
   let from;
   if (period === "1D") {
-    from = new Date(now); from.setDate(now.getDate() - 1);
+    from = date.startOfDay(now); // Используем утилиту для начала дня
   } else if (period === "1W") {
     from = new Date(now); from.setDate(now.getDate() - 7);
   } else if (period === "1M") {

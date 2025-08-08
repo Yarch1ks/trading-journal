@@ -91,7 +91,7 @@ export function makeEquityChart(ctx, labels, values) {
   // auto-fill только при создании
   const filled = autofillSeries(labels, values, 8);
   const yPad = paddedExtents(filled.values, 0.08, 1, { min: 0 }); // equity не ниже 0
-  return new Chart(ctx, {
+  return new window.Chart(ctx, {
     type: "line",
     data: {
       labels: filled.labels,
@@ -136,7 +136,7 @@ export function makeWinrateChart(ctx, labels, values) {
     filled.values.map(v => Math.min(100, Math.max(0, v))),
     0.06, 5, { min: 0, max: 100 }
   );
-  return new Chart(ctx, {
+  return new window.Chart(ctx, {
     type: "line",
     data: {
       labels: filled.labels,
@@ -181,7 +181,7 @@ export function makePnlBars(ctx, labels, pnlValues) {
   const span = absMax * 2;
   const pad = Math.max(span * 0.08, 1);
   const yPad = { suggestedMin: -absMax - pad, suggestedMax: absMax + pad };
-  return new Chart(ctx, {
+  return new window.Chart(ctx, {
     type: "bar",
     data: {
       labels: filled.labels,
@@ -221,7 +221,7 @@ export function makePie(ctx, labels, values) {
   const palette = [
     c.primary, c.green, "#7c3aed", "#f59e0b", "#06b6d4", "#ef4444", "#22c55e", "#8b5cf6"
   ];
-  return new Chart(ctx, {
+  return new window.Chart(ctx, {
     type: "doughnut",
     data: {
       labels,

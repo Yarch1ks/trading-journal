@@ -78,6 +78,7 @@ async function refreshTrades() {
       limit: Number(pageSizeSel?.value) || 50,
       offset: pageIdx * (Number(pageSizeSel?.value) || 50)
     });
+    DataStore.trades = rows;
     renderAll();
   } catch (e) {
     console.error("Failed to load trades from Supabase", e);
@@ -670,6 +671,32 @@ function wireEvents() {
       const rows = getFilteredTrades();
       exportCsv(rows);
     });
+  }
+}
+
+// Helper function to generate ID
+function genId(prefix = "t") {
+  return prefix + Math.random().toString(36).slice(2, 9);
+}
+
+// Persistence helpers for localStorage fallback
+function loadFromStorage() {
+  try {
+    const saved = localStorage.getItem('tj.trades');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      DataStore.trades = parsed;
+    }
+  } catch (e) {
+    console.warn('Failed to load trades from localStorage:', e);
+  }
+}
+
+function persistToStorage() {
+  try {
+    localStorage.setItem('tj.trades', JSON.stringify(DataStore.trades));
+  } catch (e) {
+    console.warn('Failed to save trades to localStorage:', e);
   }
 }
 

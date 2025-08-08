@@ -1,6 +1,6 @@
 import { DataStore, Session, Selectors, computeKpis, filterTradesByPeriod, setSelectedAccount, subscribeToTrades } from "./state.js";
 import { renderRecentTrades, renderGoals, setKpi } from "./components.js";
-import { fmt } from "./utils.js";
+import * as fmtUtils from "./utils.js";
 import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } from "./charts.js";
 
 /**
@@ -402,19 +402,27 @@ function init() {
     // Восстанавливаем состояние боковой панели
     restoreSidebarState();
 
-    hydrateSelectors();
-    hydrateHeaderAccountSelect(); // ensure account selector exists and synced
-    ensureHeaderNickname();
-    subscribeToTrades();
-    hydrateNotes();
-    hydrateGoals();
-    wireEvents();
-    initCharts();
-    renderAll();
+    // Проверяем существование элементов перед инициализацией
+    if (viewEl) {
+      hydrateSelectors();
+      hydrateHeaderAccountSelect(); // ensure account selector exists and synced
+      ensureHeaderNickname();
+      subscribeToTrades();
+      hydrateNotes();
+      hydrateGoals();
+      wireEvents();
+      initCharts();
+      renderAll();
+    } else {
+      // Если это не SPA страница, инициализируем только базовые функции
+      hydrateSelectors();
+      hydrateHeaderAccountSelect();
+      ensureHeaderNickname();
+    }
 
     // Подписка на изменения данных
     subscribeToDataChanges(() => {
-      renderAll();
+      if (viewEl) renderAll();
     });
 
     status.textContent = "Dashboard OK";
@@ -774,10 +782,10 @@ function renderKpis(trades) {
   })();
   equityDateRange.textContent = fromToText;
 
-  setKpi(kEquityValue, kEquityDelta, fmt.currency(k.equity, k.currency), k.deltas.equityDelta, (n)=>fmt.currency(n, k.currency));
-  setKpi(kWinRateValue, kWinRateDelta, fmt.percent(k.winRate), k.deltas.winRateDelta, (n)=> (n*100).toFixed(1), "%");
-  setKpi(kTradesCountValue, kTradesCountDelta, fmt.number(k.count), k.deltas.countDelta, (n)=> n.toString());
-  setKpi(kPnlValue, kPnlDelta, fmt.currency(k.totalPnl, k.currency), k.deltas.pnlDelta, (n)=>fmt.currency(n, k.currency));
+  setKpi(kEquityValue, kEquityDelta, fmtUtils.fmt.currency(k.equity, k.currency), k.deltas.equityDelta, (n)=>fmtUtils.fmt.currency(n, k.currency));
+  setKpi(kWinRateValue, kWinRateDelta, fmtUtils.fmt.percent(k.winRate), k.deltas.winRateDelta, (n)=> (n*100).toFixed(1), "%");
+  setKpi(kTradesCountValue, kTradesCountDelta, fmtUtils.fmt.number(k.count), k.deltas.countDelta, (n)=> n.toString());
+  setKpi(kPnlValue, kPnlDelta, fmtUtils.fmt.currency(k.totalPnl, k.currency), k.deltas.pnlDelta, (n)=>fmtUtils.fmt.currency(n, k.currency));
 }
 
 function renderCharts() {
@@ -867,7 +875,7 @@ function renderRecent() {
     btn.addEventListener("click", () => {
       const t = [...trades].slice(-8).reverse()[idx];
       if (!t) return;
-      alert(`Сделка ${t.id}\nДата: ${t.exitAt || t.entryAt}\nИнструмент: ${t.symbol}\nСтратегия: ${t.strategy}\nR: ${t.r}\nP&L: ${t.pnl}`);
+      alert(`Сделка ${t.id}\nДата: ${t.exitAt || t.entryAt}\nИнструмент: ${t.symbol}\nСтратегия: ${t.strategy || "N/A"}\nR: ${t.r || 0}\nP&L: ${fmtUtils.fmt.currency(t.pnl || 0, acc?.currency || DataStore.currency)}`);
     });
     actionsCell.appendChild(btn);
   });
@@ -875,8 +883,10 @@ function renderRecent() {
 
 function renderAll() {
   const trades = getFilteredTrades();
-  renderKpis(trades);
-  renderCharts();
+  if (trades.length > 0) {
+    renderKpis(trades);
+    renderCharts();
+  }
   renderRecent();
 }
 
@@ -912,7 +922,7 @@ function renderKpiSpark(id, labels, values) {
   const ctx = canvas.getContext("2d");
   const existing = canvas.__chart__;
   if (existing) existing.destroy();
-  canvas.__chart__ = new Chart(ctx, {
+  canvas.__chart__ = new window.Chart(ctx, {
     type: "line",
     data: { labels, datasets: [{ data: values, borderColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim(), backgroundColor: "transparent", pointRadius: 0, tension: 0.35 }] },
     options: {
