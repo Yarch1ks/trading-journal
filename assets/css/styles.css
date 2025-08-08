@@ -85,28 +85,65 @@ body {
 }
 .app-header--pro .status-pill.online { color: #16a34a; border-color: rgba(22,163,74,.35); background: rgba(22,163,74,.10); }
 .icon-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 10px;
-  border: 1px solid var(--border); background: transparent; color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  border-radius: 8px;
   cursor: pointer;
-}
-.icon-btn:hover { 
-  background: var(--elev-2); 
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-.icon-btn:active { 
-  transform: translateY(0);
-  box-shadow: none;
-}
-.pill.live {
-  font-size: 12px; padding: 6px 10px; border-radius: 999px;
-  background: rgba(59,130,246,.12); color: var(--primary);
-  border: 1px solid rgba(59,130,246,.25);
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1000;
 }
 
-.branding {
-  display: flex; align-items: center; gap: 12px;
+.icon-btn:hover {
+  background: var(--elev-2);
+  color: var(--primary);
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+}
+
+.icon-btn.active {
+  background: var(--primary);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Улучшенные стили для кнопки меню */
+#sbBurger {
+  position: relative;
+  z-index: 1001;
+}
+
+#sbBurger:hover {
+  background: var(--elev-3);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#sbBurger:active {
+  transform: scale(0.9);
+}
+
+/* Анимация для кнопки меню при открытии sidebar */
+.sidebar-open #sbBurger {
+  background: var(--primary);
+  color: white;
+}
+
+/* Touch feedback для мобильных устройств */
+@media (hover: none) {
+  .icon-btn:active {
+    background: var(--primary);
+    color: white;
+    transform: scale(0.95);
+  }
 }
 .logo {
   width: 36px; height: 36px; border-radius: 10px;
