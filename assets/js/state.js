@@ -269,6 +269,56 @@ export async function deleteTrade(id) {
   document.dispatchEvent(new CustomEvent("tj.trades.changed", { detail: { type: "delete", id } }));
 }
 
+let tradesChannel = null;
+
+export function subscribeToTrades() {
+  const client = window.supabaseClient || (window.auth && window.auth.supabase);
+  if (!client || !client.channel) return null;
+
+  if (tradesChannel) try { tradesChannel.unsubscribe(); } catch {}
+
+  tradesChannel = client
+    .channel('any')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'trades_new' }, payload => {
+      const evt = payload.eventType;
+      if (evt === 'DELETE') {
+        const id = payload.old?.id;
+        if (id) {
+          DataStore.trades = DataStore.trades.filter(t => t.id !== id);
+          document.dispatchEvent(new CustomEvent('tj.trades.changed', { detail: { type: 'delete', id } }));
+        }
+        return;
+      }
+
+      const r = payload.new;
+      if (!r) return;
+      const trade = {
+        id: r.id,
+        accountId: r.account || null,
+        symbol: r.pair || '',
+        strategy: '',
+        qty: 1,
+        r: Number(r.rr ?? 0),
+        pnl: Number(r.net_result_usd ?? 0),
+        entryAt: r.started_at ? String(r.started_at).slice(0, 10) : null,
+        exitAt: r.ended_at ? String(r.ended_at).slice(0, 10) : r.started_at ? String(r.started_at).slice(0, 10) : null,
+        fees: 0,
+        notes: r.notes || '',
+        tags: []
+      };
+      const idx = DataStore.trades.findIndex(t => t.id === trade.id);
+      if (idx >= 0) DataStore.trades[idx] = trade; else DataStore.trades.unshift(trade);
+      document.dispatchEvent(new CustomEvent('tj.trades.changed', { detail: { type: evt.toLowerCase(), id: trade.id } }));
+    })
+    .subscribe();
+
+  window.addEventListener('beforeunload', () => {
+    try { tradesChannel.unsubscribe(); } catch {}
+  }, { once: true });
+
+  return tradesChannel;
+}
+
 export function computeKpis(trades, startingEquity, currency) {
   const totalPnl = sum(trades, t => t.pnl);
   const equity = (startingEquity || 0) + totalPnl;

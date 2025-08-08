@@ -1,4 +1,4 @@
-import { DataStore, Session, Selectors, computeKpis, filterTradesByPeriod, setSelectedAccount } from "./state.js";
+import { DataStore, Session, Selectors, computeKpis, filterTradesByPeriod, setSelectedAccount, subscribeToTrades } from "./state.js";
 import { renderRecentTrades, renderGoals, setKpi } from "./components.js";
 import { fmt } from "./utils.js";
 import { makeEquityChart, makeWinrateChart, makePnlBars, makePie, updateChart } from "./charts.js";
@@ -215,6 +215,7 @@ function init() {
     hydrateSelectors();
     hydrateHeaderAccountSelect(); // ensure account selector exists and synced
     ensureHeaderNickname();
+    subscribeToTrades();
     hydrateNotes();
     hydrateGoals();
     wireEvents();
