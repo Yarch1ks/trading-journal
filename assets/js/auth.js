@@ -25,7 +25,10 @@
 
   // Create global client (idempotent)
   try {
-    window.supabaseClient = window.supabaseClient || window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    if (!window.supabaseClient) {
+      window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      console.log("Supabase client initialized");
+    }
   } catch (e) {
     console.error("Supabase createClient failed", e);
   }

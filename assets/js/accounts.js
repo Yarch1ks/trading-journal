@@ -23,7 +23,11 @@
     if (window.auth && window.auth.supabase) return window.auth.supabase;
     if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
       try {
-        window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        // Don't create a new client - use the global one or create it once
+        if (!window.supabaseClient) {
+          window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+          console.log("Supabase client initialized from accounts.js");
+        }
         return window.supabaseClient;
       } catch (_) {}
     }

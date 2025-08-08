@@ -177,8 +177,8 @@ let equityChart, winrateChart, pnlChart, pieChart;
 
 async function fetchNicknameViaSupabase() {
   try {
-    if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return null;
-    const client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const client = window.supabaseClient || (window.auth && window.auth.supabase);
+    if (!client) return null;
     const { data: { user }, error } = await client.auth.getUser();
     if (error || !user) return null;
 
@@ -256,19 +256,46 @@ function init() {
   }
 }
 
-function subscribeToDataChanges() {
-  const unsubscribe = subscribeToDataChanges((e) => {
-    if (e.type === "tj.accounts.changed" || e.type === "tj.trades.changed") {
-      renderAll();
-    } else if (e.type === "tj.account.selected") {
-      renderAll();
+function subscribeToDataChanges(callback) {
+  const handlers = [];
+  
+  // Добавляем обработчики для разных типов событий
+  const accountHandler = (e) => {
+    if (e.type === "tj.accounts.changed") {
+      callback(e);
     }
-  });
-
-  // Отписка при размонтировании компонента
-  return () => {
-    unsubscribe();
   };
+  
+  const tradeHandler = (e) => {
+    if (e.type === "tj.trades.changed") {
+      callback(e);
+    }
+  };
+  
+  const accountSelectedHandler = (e) => {
+    if (e.type === "tj.account.selected") {
+      callback(e);
+    }
+  };
+
+  // Подписываемся на события
+  document.addEventListener("tj.accounts.changed", accountHandler);
+  document.addEventListener("tj.trades.changed", tradeHandler);
+  document.addEventListener("tj.account.selected", accountSelectedHandler);
+
+  // Сохраняем обработчики для возможности отписки
+  handlers.push(accountHandler, tradeHandler, accountSelectedHandler);
+
+  // Функция отписки
+  const unsubscribe = () => {
+    handlers.forEach(handler => {
+      document.removeEventListener("tj.accounts.changed", handler);
+      document.removeEventListener("tj.trades.changed", handler);
+      document.removeEventListener("tj.account.selected", handler);
+    });
+  };
+
+  return unsubscribe;
 }
 
 function hydrateSelectors() {
