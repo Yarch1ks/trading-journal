@@ -527,7 +527,7 @@ body.sidebar-collapsed .app-header {
   background: var(--bg);
 }
 
-/* Удаляем margin-left из .dashboard, .app-header, .app-footer — теперь только через body */
+/* Удаляем margin-left из .dashboard, .app-header, .app-footer — margin-left только через body */
 .dashboard {
   margin: 0 auto;
   padding: 24px;
@@ -545,7 +545,7 @@ body.sidebar-collapsed .app-header {
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Управляем отступами только через body */
+/* margin-left только через body */
 body:not(.sidebar-collapsed) .dashboard,
 body:not(.sidebar-collapsed) .app-header,
 body:not(.sidebar-collapsed) .app-footer {
