@@ -18,11 +18,8 @@ const pageSubtitle = document.getElementById("pageSubtitle");
 // Sidebar controls - переключение между expanded и collapsed
 function toggleSidebar() {
   if (!sidebar) return;
-  
-  sidebar.classList.toggle("collapsed");
-  const isCollapsed = sidebar.classList.contains("collapsed");
-  
-  // Обновляем класс на body для правильных отступов
+  const isCollapsed = sidebar.classList.toggle("collapsed");
+  // Синхронизируем класс на body
   if (isCollapsed) {
     document.body.classList.add("sidebar-collapsed");
   } else {
@@ -125,31 +122,19 @@ document.addEventListener("keydown", (e) => {
 // Восстанавливаем состояние боковой панели при загрузке
 function restoreSidebarState() {
   if (!sidebar) return;
-  
   let isCollapsed = false;
-  
-  // Проверяем сохраненное состояние
   try {
     const savedState = localStorage.getItem("tj.sidebar");
     isCollapsed = savedState === "collapsed";
   } catch (e) {
     console.warn("Failed to restore sidebar state:", e);
   }
-  
   // На мобильных устройствах по умолчанию свернута
   if (window.innerWidth <= 768) {
     isCollapsed = true;
   }
-  
-  if (isCollapsed) {
-    sidebar.classList.add("collapsed");
-    document.body.classList.add("sidebar-collapsed");
-    if (window.innerWidth <= 768) {
-      document.body.classList.remove("sidebar-mobile-open");
-    }
-  } else {
-    document.body.classList.remove("sidebar-collapsed");
-  }
+  sidebar.classList.toggle("collapsed", isCollapsed);
+  document.body.classList.toggle("sidebar-collapsed", isCollapsed);
 }
 
 // Обработка изменения размера окна
@@ -921,6 +906,21 @@ function renderKpiSpark(id, labels, values) {
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const existing = canvas.__chart__;
+  if (existing) existing.destroy();
+  canvas.__chart__ = new window.Chart(ctx, {
+    type: "line",
+    data: { labels, datasets: [{ data: values, borderColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim(), backgroundColor: "transparent", pointRadius: 0, tension: 0.35 }] },
+    options: {
+      animation: { duration: 200 },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      elements: { line: { borderWidth: 2 } }
+    }
+  });
+}
+
+init();
+route();
   if (existing) existing.destroy();
   canvas.__chart__ = new window.Chart(ctx, {
     type: "line",

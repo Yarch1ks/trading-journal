@@ -82,8 +82,6 @@ html, body {
   position: sticky;
   top: 0;
   z-index: 100;
-  margin-left: 240px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   height: var(--header-h);
 }
 
@@ -529,25 +527,35 @@ body.sidebar-collapsed .app-header {
   background: var(--bg);
 }
 
+/* Удаляем margin-left из .dashboard, .app-header, .app-footer — теперь только через body */
 .dashboard {
   margin: 0 auto;
   padding: 24px;
   width: 100%;
-  margin-left: 240px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   flex: 1;
 }
 
-.sidebar.collapsed ~ .app-shell .dashboard {
+.app-header {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: var(--header-h);
+}
+
+.app-footer {
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Управляем отступами только через body */
+body:not(.sidebar-collapsed) .dashboard,
+body:not(.sidebar-collapsed) .app-header,
+body:not(.sidebar-collapsed) .app-footer {
+  margin-left: var(--sidebar-w);
+}
+
+body.sidebar-collapsed .dashboard,
+body.sidebar-collapsed .app-header,
+body.sidebar-collapsed .app-footer {
   margin-left: var(--sidebar-w-collapsed);
-}
-
-body:not(.sidebar-collapsed) .dashboard {
-  margin-left: 240px;
-}
-
-body.sidebar-collapsed .dashboard {
-  margin-left: 60px;
 }
 
 .grid {
@@ -1192,7 +1200,6 @@ body.sidebar-collapsed .dashboard {
   border-top: 1px solid var(--border);
   font-size: 13px;
   color: var(--muted);
-  margin-left: 240px;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
