@@ -26,6 +26,7 @@
   --sidebar-w: 240px;
   --sidebar-w-collapsed: 60px;
   --header-h: 70px;
+}
 
 html[data-theme="light"] {
   --bg: #f8fafc;
@@ -1826,3 +1827,4 @@ body.sidebar-collapsed .app-footer {
     transition-duration: 0.01ms !important;
   }
 }
+
