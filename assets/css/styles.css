@@ -85,10 +85,6 @@ html, body {
   height: var(--header-h);
 }
 
-.sidebar.collapsed ~ .app-header {
-  margin-left: var(--sidebar-w-collapsed);
-}
-
 body:not(.sidebar-collapsed) .app-header {
   margin-left: 240px;
 }
@@ -556,73 +552,6 @@ body.sidebar-collapsed .dashboard,
 body.sidebar-collapsed .app-header,
 body.sidebar-collapsed .app-footer {
   margin-left: var(--sidebar-w-collapsed);
-}
-
-.grid {
-  display: grid;
-  gap: 20px;
-}
-
-.grid.kpis {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  position: relative;
-}
-
-.grid.charts {
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
-
-@media (max-width: 1200px) {
-  .grid.charts {
-    grid-template-columns: 1fr;
-  }
-}
-
-.chart-card,
-.card.chart {
-  min-height: 380px;
-}
-
-.separated {
-  margin-bottom: 12px;
-}
-
-.separated + .grid.charts {
-  margin-top: 12px;
-}
-
-.grid.two-col {
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-  gap: 24px;
-}
-
-.stack .card {
-  padding: 20px;
-}
-
-.stack .card .btn {
-  font-size: 13px;
-  padding: 10px 16px;
-}
-
-.stack .card .select select {
-  padding: 10px 14px;
-  font-size: 13px;
-}
-
-.stack .card {
-  padding: 20px;
-}
-
-.stack .card .btn {
-  font-size: 13px;
-  padding: 10px 16px;
-}
-
-.stack .card .select select {
-  padding: 10px 14px;
-  font-size: 13px;
 }
 
 /* Sidebar */
@@ -1203,10 +1132,6 @@ body.sidebar-collapsed .app-footer {
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar.collapsed ~ .app-footer {
-  margin-left: var(--sidebar-w-collapsed);
-}
-
 body:not(.sidebar-collapsed) .app-footer {
   margin-left: 240px;
 }
@@ -1703,6 +1628,81 @@ body.sidebar-collapsed .app-footer {
 }
 
 ::-webkit-scrollbar-track {
+  background: var(--elev-2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+}
+
+/* Focus visible improvements */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Accessibility improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  .app-header--pro .brand-name {
+    font-size: 16px;
+  }
+  
+  .app-header--pro h1 {
+    font-size: 16px;
+  }
+  
+  .card-header h3 {
+    font-size: 16px;
+  }
+  
+  .kpi-value {
+    font-size: 24px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #000000;
+    --border-light: #333333;
+    --shadow: none;
+    --shadow-sm: none;
+  }
+  
+  html[data-theme="light"] {
+    --border: #666666;
+    --border-light: #999999;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
   background: var(--elev-2);
   border-radius: 4px;
 }
