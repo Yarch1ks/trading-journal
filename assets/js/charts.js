@@ -273,4 +273,3 @@ window.addEventListener("resize", () => {
     if (c.__chart__) { c.__chart__.destroy(); c.__chart__ = null; }
   });
 });
-});
