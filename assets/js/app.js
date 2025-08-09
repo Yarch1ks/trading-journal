@@ -921,18 +921,3 @@ function renderKpiSpark(id, labels, values) {
 
 init();
 route();
-  if (existing) existing.destroy();
-  canvas.__chart__ = new window.Chart(ctx, {
-    type: "line",
-    data: { labels, datasets: [{ data: values, borderColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim(), backgroundColor: "transparent", pointRadius: 0, tension: 0.35 }] },
-    options: {
-      animation: { duration: 200 },
-      plugins: { legend: { display: false }, tooltip: { enabled: false } },
-      scales: { x: { display: false }, y: { display: false } },
-      elements: { line: { borderWidth: 2 } }
-    }
-  });
-}
-
-init();
-route();
