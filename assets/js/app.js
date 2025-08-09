@@ -919,5 +919,9 @@ function renderKpiSpark(id, labels, values) {
   });
 }
 
+// Expose initApp globally for index.html compatibility
+window.initApp = init;
+
+// Initialize the app
 init();
 route();
