@@ -26,7 +26,6 @@
   --sidebar-w: 240px;
   --sidebar-w-collapsed: 60px;
   --header-h: 70px;
-}
 
 html[data-theme="light"] {
   --bg: #f8fafc;
@@ -46,7 +45,6 @@ html[data-theme="light"] {
   --border-light: #cbd5e1;
   --shadow: 0 8px 32px rgba(0,0,0,0.08);
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
-}
 
 * { 
   box-sizing: border-box; 
@@ -521,40 +519,25 @@ body.sidebar-collapsed .app-header {
   flex-direction: column;
   min-height: 100vh;
   background: var(--bg);
-}
-
-/* Удаляем margin-left из .dashboard, .app-header, .app-footer — margin-left только через body */
-.dashboard {
-  margin: 0 auto;
-  padding: 24px;
-  width: 100%;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  flex: 1;
-}
-
-.app-header {
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: var(--header-h);
-}
-
-.app-footer {
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* margin-left только через body */
-body:not(.sidebar-collapsed) .dashboard,
-body:not(.sidebar-collapsed) .app-header,
-body:not(.sidebar-collapsed) .app-footer {
+body:not(.sidebar-collapsed) .app-shell {
   margin-left: var(--sidebar-w);
 }
 
-body.sidebar-collapsed .dashboard,
-body.sidebar-collapsed .app-header,
-body.sidebar-collapsed .app-footer {
+body.sidebar-collapsed .app-shell {
   margin-left: var(--sidebar-w-collapsed);
 }
 
-/* Sidebar */
+/* Убираем margin-left у .dashboard, .app-header, .app-footer */
+.dashboard,
+.app-header,
+.app-footer {
+  margin-left: 0 !important;
+}
+
+/* Sidebar — фиксируем слева, не влияем на layout через margin у внутренних элементов */
 .sidebar {
   position: fixed;
   top: 0;
@@ -1688,6 +1671,21 @@ body.sidebar-collapsed .app-footer {
     --shadow: none;
     --shadow-sm: none;
   }
+  
+  html[data-theme="light"] {
+    --border: #666666;
+    --border-light: #999999;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
   
   html[data-theme="light"] {
     --border: #666666;
