@@ -113,40 +113,40 @@ html[data-theme="light"] {
 
 /* Dark theme */
 html[data-theme="dark"] {
-  --bg-primary: #18181c;
-  --bg-secondary: #23232a;
-  --bg-tertiary: #23232a;
-  --bg-card: #23232a;
-  --bg-hover: #23232a;
+  --bg-primary: #23232a;
+  --bg-secondary: #282832;
+  --bg-tertiary: #2d2d38;
+  --bg-card: #31313d;
+  --bg-hover: #39394a;
   --text-primary: #f3f4f6;
-  --text-secondary: #cbd5e1;
+  --text-secondary: #e5e7eb;
   --text-tertiary: #a1a1aa;
-  --text-muted: #6b7280;
-  --border-primary: #23232a;
-  --border-secondary: #23232a;
-  --border-tertiary: #23232a;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-xl: 0 16px 64px rgba(0,0,0,0.5);
+  --text-muted: #b0b0b0;
+  --border-primary: #39394a;
+  --border-secondary: #39394a;
+  --border-tertiary: #39394a;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-xl: 0 16px 64px rgba(0,0,0,0.6);
   --primary: #2563eb;
   --primary-light: #3388ff;
   --primary-dark: #1e40af;
-  --primary-bg: rgba(37,99,235,0.08);
-  --primary-border: rgba(37,99,235,0.18);
+  --primary-bg: rgba(37,99,235,0.12);
+  --primary-border: rgba(37,99,235,0.22);
   --success: #10b981;
-  --success-bg: rgba(16,185,129,0.08);
-  --success-border: rgba(16,185,129,0.18);
+  --success-bg: rgba(16,185,129,0.12);
+  --success-border: rgba(16,185,129,0.22);
   --error: #ef4444;
-  --error-bg: rgba(239,68,68,0.08);
-  --error-border: rgba(239,68,68,0.18);
+  --error-bg: rgba(239,68,68,0.12);
+  --error-border: rgba(239,68,68,0.22);
   --warning: #f59e0b;
-  --warning-bg: rgba(245,158,11,0.08);
-  --warning-border: rgba(245,158,11,0.18);
-  --border: #23232a;
-  --elev-1: #23232a;
-  --elev-2: #18181c;
-  --muted: #6b7280;
+  --warning-bg: rgba(245,158,11,0.12);
+  --warning-border: rgba(245,158,11,0.22);
+  --border: #39394a;
+  --elev-1: #31313d;
+  --elev-2: #282832;
+  --muted: #b0b0b0;
 }
 
 /* Reset and base styles */
@@ -1269,6 +1269,29 @@ body.sidebar-collapsed .app-footer {
   }
 }
 
+@media (max-width: 900px) {
+  .sidebar {
+    position: absolute;
+    z-index: 100;
+    width: 80vw;
+    min-width: 220px;
+    max-width: 100vw;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-secondary);
+  }
+  body.sidebar-collapsed .sidebar {
+    left: -100vw;
+  }
+  .dashboard {
+    margin-left: 0 !important;
+    max-width: 100vw;
+    padding: var(--spacing-md);
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     width: 100%;
@@ -1387,88 +1410,86 @@ body.sidebar-collapsed .app-footer {
   }
 }
 
-/* Исправление темной темы */
-/*html[data-theme="dark"] {
-  --bg-primary: #18181c;
-  --bg-secondary: #23232a;
-  --bg-tertiary: #23232a;
-  --bg-card: #23232a;
-  --bg-hover: #23232a;
+/* Улучшенная dark theme */
+html[data-theme="dark"] {
+  --bg-primary: #23232a;
+  --bg-secondary: #282832;
+  --bg-tertiary: #2d2d38;
+  --bg-card: #31313d;
+  --bg-hover: #39394a;
   --text-primary: #f3f4f6;
-  --text-secondary: #cbd5e1;
+  --text-secondary: #e5e7eb;
   --text-tertiary: #a1a1aa;
-  --text-muted: #6b7280;
-  --border-primary: #23232a;
-  --border-secondary: #23232a;
-  --border-tertiary: #23232a;
-  --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-xl: 0 16px 64px rgba(0,0,0,0.5);
+  --text-muted: #b0b0b0;
+  --border-primary: #39394a;
+  --border-secondary: #39394a;
+  --border-tertiary: #39394a;
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-xl: 0 16px 64px rgba(0,0,0,0.6);
   --primary: #2563eb;
   --primary-light: #3388ff;
   --primary-dark: #1e40af;
-  --primary-bg: rgba(37,99,235,0.08);
-  --primary-border: rgba(37,99,235,0.18);
+  --primary-bg: rgba(37,99,235,0.12);
+  --primary-border: rgba(37,99,235,0.22);
   --success: #10b981;
-  --success-bg: rgba(16,185,129,0.08);
-  --success-border: rgba(16,185,129,0.18);
+  --success-bg: rgba(16,185,129,0.12);
+  --success-border: rgba(16,185,129,0.22);
   --error: #ef4444;
-  --error-bg: rgba(239,68,68,0.08);
-  --error-border: rgba(239,68,68,0.18);
+  --error-bg: rgba(239,68,68,0.12);
+  --error-border: rgba(239,68,68,0.22);
   --warning: #f59e0b;
-  --warning-bg: rgba(245,158,11,0.08);
-  --warning-border: rgba(245,158,11,0.18);
-  --border: #23232a;
-  --elev-1: #23232a;
-  --elev-2: #18181c;
-  --muted: #6b7280;
-}*/
-
-/* Исправление layout и предотвращение горизонтального скролла */
-html, body {
-  overflow-x: hidden;
-  box-sizing: border-box;
-  min-width: 320px;
+  --warning-bg: rgba(245,158,11,0.12);
+  --warning-border: rgba(245,158,11,0.22);
+  --border: #39394a;
+  --elev-1: #31313d;
+  --elev-2: #282832;
+  --muted: #b0b0b0;
 }
 
-#app, .dashboard {
-  max-width: 1400px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
+/* Карточки и sidebar с тенью и светлым фоном */
+.card, .sidebar {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-primary);
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
-.card, .sidebar, .app-header, .app-footer {
-  box-sizing: border-box;
-  max-width: 100vw;
-  overflow-x: auto;
+/* Контраст для KPI */
+.kpi-value, .kpi-title, .kpi-subtitle {
+  color: var(--text-primary);
 }
 
-/* Исправление для мобильных */
-@media (max-width: 768px) {
-  .dashboard {
-    max-width: 100vw;
-    padding: var(--spacing-md);
-  }
+/* Sidebar не перекрывает контент на мобильных */
+@media (max-width: 900px) {
   .sidebar {
-    width: 100vw;
-    min-width: 0;
+    position: absolute;
+    z-index: 100;
+    width: 80vw;
+    min-width: 220px;
     max-width: 100vw;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    box-shadow: var(--shadow-lg);
+    background: var(--bg-secondary);
   }
-  .card {
+  body.sidebar-collapsed .sidebar {
+    left: -100vw;
+  }
+  .dashboard {
+    margin-left: 0 !important;
+    max-width: 100vw;
     padding: var(--spacing-md);
-    max-width: 100vw;
-  }
-  .app-header, .app-footer {
-    padding: 0 var(--spacing-md);
-    max-width: 100vw;
   }
 }
 
 /* Плавная смена темы */
 body, .dashboard, .card, .sidebar, .app-header, .app-footer {
-  transition: background 0.3s, color 0.3s;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s;
 }
 
 /* Animations */
