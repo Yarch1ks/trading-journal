@@ -130,9 +130,25 @@ body.sidebar-collapsed .app-header {
 
 .app-header--pro .title {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-header--pro .brand-row {
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 4px;
+}
+
+.app-header--pro .page-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header--pro .dot {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .app-header--pro .brand-name { 
@@ -528,13 +544,6 @@ body:not(.sidebar-collapsed) .app-shell {
 
 body.sidebar-collapsed .app-shell {
   margin-left: var(--sidebar-w-collapsed);
-}
-
-/* Убираем margin-left у .dashboard, .app-header, .app-footer */
-.dashboard,
-.app-header,
-.app-footer {
-  margin-left: 0 !important;
 }
 
 /* Sidebar — фиксируем слева, не влияем на layout через margin у внутренних элементов */
@@ -1320,13 +1329,45 @@ body.sidebar-collapsed .app-footer {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+/* Grid system */
+.dashboard {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  gap: 20px;
+}
+
+.grid.kpis {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid.kpis.separated {
+  gap: 24px;
+}
+
+.grid.kpis.kpis-fixed {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.grid.charts {
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+}
+
+.grid.two-col {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
 /* Responsive */
 @media (max-width: 1400px) {
   .dashboard {
     padding: 20px;
   }
-  .grid.kpis { 
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+  .grid.kpis {
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
 }
 
@@ -1604,6 +1645,98 @@ body.sidebar-collapsed .app-footer {
   box-shadow: var(--shadow);
 }
 
+/* Missing classes from HTML */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.table-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.note-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.af-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all var(--transition);
+}
+
+.link:hover {
+  color: var(--primary-light);
+  text-decoration: underline;
+}
+
+.msg {
+  padding: 12px;
+  border-radius: 8px;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.msg.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.msg.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+
+.card-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.auth-tabs .btn {
+  flex: 1;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.account-editor__actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 8px;
@@ -1685,94 +1818,3 @@ body.sidebar-collapsed .app-footer {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-  
-  html[data-theme="light"] {
-    --border: #666666;
-    --border-light: #999999;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-  background: var(--elev-2);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--muted);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text);
-}
-
-/* Focus visible improvements */
-*:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
-/* Accessibility improvements */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Responsive typography */
-@media (max-width: 768px) {
-  .app-header--pro .brand-name {
-    font-size: 16px;
-  }
-  
-  .app-header--pro h1 {
-    font-size: 16px;
-  }
-  
-  .card-header h3 {
-    font-size: 16px;
-  }
-  
-  .kpi-value {
-    font-size: 24px;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  :root {
-    --border: #000000;
-    --border-light: #333333;
-    --shadow: none;
-    --shadow-sm: none;
-  }
-  
-  html[data-theme="light"] {
-    --border: #666666;
-    --border-light: #999999;
-  }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}

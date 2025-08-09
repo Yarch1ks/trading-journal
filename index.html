@@ -42,7 +42,7 @@
 </head>
 <body>
     <div id="app">
-    <!-- SPA Layout: Sidebar + Content -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="sidebar" aria-label="Main navigation">
       <div class="sb-brand">
         <div class="logo">TJ</div>
@@ -53,37 +53,37 @@
         <button id="sbClose" class="btn ghost icon" aria-label="Свернуть меню">◄</button>
       </div>
       <nav class="sb-nav">
-          <a href="#/dashboard" class="sb-link">
+        <a href="index.html" class="sb-link active">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3h8v8H3zM13 3h8v8h-8zM13 13h8v8h-8zM3 13h8v8H3z" stroke-width="2" stroke-linejoin="round"/></svg>
           </span>
           <span>Дашборд</span>
         </a>
-          <a href="journal.html" class="sb-link">
+        <a href="journal.html" class="sb-link">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h6" stroke-width="2" stroke-linecap="round"/></svg>
           </span>
           <span>Журнал</span>
         </a>
-          <a href="#/analytics" class="sb-link">
+        <a href="index.html#/analytics" class="sb-link">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18" stroke-width="2"/><path d="M7 16v2M12 10v8M17 6v12" stroke-width="2" stroke-linecap="round"/></svg>
           </span>
           <span>Аналитика</span>
         </a>
-          <a href="#/calendar" class="sb-link">
+        <a href="index.html#/calendar" class="sb-link">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2" stroke-width="2"/><path d="M16 3v4M8 3v4M3 10h18" stroke-width="2" stroke-linecap="round"/></svg>
           </span>
           <span>Календарь</span>
         </a>
-          <a href="#/goals" class="sb-link">
+        <a href="index.html#/goals" class="sb-link">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2"/><path d="M12 7v10M7 12h10" stroke-width="2" stroke-linecap="round"/></svg>
           </span>
           <span>Цели</span>
         </a>
-          <a href="#/accounts" class="sb-link">
+        <a href="accounts.html" class="sb-link">
           <span class="ico">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="7" r="4" stroke-width="2"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0" stroke-width="2" stroke-linecap="round"/></svg>
           </span>
@@ -97,17 +97,8 @@
             <div class="umail muted">admin@trading.com</div>
           </div>
         </div>
-        <div class="u-actions">
-          <button class="icon-btn" title="Настройки" aria-label="Настройки">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.66 0 1.26-.39 1.51-1 .25-.61.11-1.25-.33-1.72l-.06-.06A2 2 0 1 1 7.04 3.1l.06.06c.47.44 1.14.58 1.72.33.61-.25 1-.85 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51.58.25 1.25.11 1.72-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.44.47-.58 1.14-.33 1.72.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <button class="icon-btn danger" title="Выйти" aria-label="Выйти">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
       </nav>
     </aside>
-
     <div class="app-shell">
       <header class="app-header app-header--pro">
         <div class="ah-left">
@@ -117,23 +108,25 @@
           <div class="branding">
             <div class="logo">TJ</div>
             <div class="title">
-              <span class="brand-name">TradingJournal</span>
-              <span class="brand-pro">Pro</span>
-              <span class="status-pill online">Онлайн</span>
+              <div class="brand-row">
+                <span class="brand-name">TradingJournal</span>
+                <span class="brand-pro">Pro</span>
+              </div>
+              <div class="page-row">
+                <h1 id="pageTitle">Дашборд</h1>
+                <span class="dot">•</span>
+                <span class="portfolio muted">Обзор статистики</span>
+              </div>
             </div>
-            <h1 id="pageTitle">Торговый дашборд</h1>
           </div>
         </div>
-
         <div class="ah-right">
-          <div class="pill live">Live Data</div>
-
-          <div class="dropdown" id="periodDropdown">
+          <div class="dropdown" id="periodDD">
             <button class="icon-btn dropdown-toggle" aria-haspopup="listbox" title="Период">
-              <span class="dropdown-label" id="periodDropdownLabel">Всё время</span>
+              <span class="dropdown-label" id="periodLbl">Всё время</span>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m6 9 6 6 6-6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <ul class="dropdown-menu" id="periodDropdownMenu" role="listbox" aria-label="Периоды">
+            <ul class="dropdown-menu" id="periodMenu" role="listbox" aria-label="Периоды">
               <li data-value="1D">День</li>
               <li data-value="1W">Неделя</li>
               <li data-value="1M">Месяц</li>
@@ -142,223 +135,209 @@
               <li data-value="ALL" class="active">Всё время</li>
             </ul>
           </div>
-
-
-          <button class="icon-btn" title="Уведомления" aria-label="Уведомления">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-
-          <button class="icon-btn" title="Настройки" aria-label="Настройки">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09c.66 0 1.26-.39 1.51-1 .25-.61.11-1.25-.33-1.72l-.06-.06A2 2 0 1 1 7.04 3.1l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09c0 .66.39 1.26 1 1.51.58.25 1.25.11 1.72-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06c-.44.47-.58 1.14-.33 1.72.25.61.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.66 0-1.26.39-1.51 1Z" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-
           <button id="themeToggle" class="icon-btn" title="Тема" aria-label="Переключить тему">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v2m0 14v2M4.22 4.22 5.64 5.64m12.72 12.72 1.42 1.42M1 12h2m18 0h2M4.22 19.78 5.64 18.36m12.72-12.72 1.42-1.42M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-
           <div class="user">
             <img id="userAvatar" class="avatar" alt="User" src="https://api.dicebear.com/8.x/identicon/svg?seed=trader" />
             <span id="userName" class="username">Admin</span>
           </div>
         </div>
       </header>
-
-    <main class="dashboard">
-      <section class="grid kpis separated kpis-fixed">
-        <div class="card kpi hoverable">
-          <div class="kpi-header">
-            <span class="kpi-title">Equity</span>
-            <span class="kpi-subtitle" id="equityDateRange"></span>
-          </div>
-          <div class="kpi-value" id="equityValue">—</div>
-          <div class="kpi-delta" id="equityDelta">—</div>
-        </div>
-        <div class="card kpi hoverable">
-          <div class="kpi-header">
-            <span class="kpi-title">Win Rate</span>
-            <span class="kpi-subtitle">(в периоде)</span>
-          </div>
-          <div class="kpi-value" id="winRateValue">—</div>
-          <div class="kpi-delta" id="winRateDelta">—</div>
-        </div>
-        <div class="card kpi hoverable">
-          <div class="kpi-header">
-            <span class="kpi-title">Total Trades</span>
-            <span class="kpi-subtitle">(в периоде)</span>
-          </div>
-          <div class="kpi-value" id="tradesCountValue">—</div>
-          <div class="kpi-delta" id="tradesCountDelta">—</div>
-        </div>
-        <div class="card kpi hoverable">
-          <div class="kpi-header">
-            <span class="kpi-title">P&L</span>
-            <span class="kpi-subtitle">(в периоде)</span>
-          </div>
-          <div class="kpi-value" id="pnlValue">—</div>
-          <div class="kpi-delta" id="pnlDelta">—</div>
-        </div>
-      </section>
-
-      <section class="grid charts">
-        <div class="card chart">
-          <div class="card-header">
-            <h3>Equity Curve</h3>
-          </div>
-          <canvas id="equityChart" height="140"></canvas>
-        </div>
-        <div class="card chart">
-          <div class="card-header">
-            <h3>Win Rate</h3>
-          </div>
-          <canvas id="winrateChart" height="140"></canvas>
-        </div>
-        <div class="card chart">
-          <div class="card-header">
-            <h3>P&L по периодам</h3>
-          </div>
-          <canvas id="pnlChart" height="140"></canvas>
-        </div>
-        <div class="card chart">
-          <div class="card-header tabs">
-            <h3>Распределение</h3>
-            <div class="tab-buttons">
-              <button class="btn xs" data-pie="strategy">Стратегии</button>
-              <button class="btn xs ghost" data-pie="symbol">Символы</button>
+      <main class="dashboard">
+        <section class="grid kpis separated kpis-fixed">
+          <div class="card kpi hoverable">
+            <div class="kpi-header">
+              <span class="kpi-title">Капитал</span>
+              <span class="kpi-subtitle" id="equityDateRange"></span>
             </div>
+            <div class="kpi-value" id="equityValue">—</div>
+            <div class="kpi-delta" id="equityDelta">—</div>
           </div>
-          <canvas id="pieChart" height="140"></canvas>
-        </div>
-      </section>
-
-      <section class="grid two-col">
-        <div class="card">
-          <div class="card-header split">
-            <h3>Журнал сделок</h3>
-            <a id="journalLink" href="#" class="btn">Открыть</a>
-          </div>
-          <div class="table-wrap">
-            <div class="table-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
-              <button id="addTradeBtn" class="btn">+ Добавить сделку</button>
+          <div class="card kpi hoverable">
+            <div class="kpi-header">
+              <span class="kpi-title">Винрейт</span>
+              <span class="kpi-subtitle">(в периоде)</span>
             </div>
-            <table class="table compact" id="recentTradesTable">
-              <thead>
-                <tr>
-                  <th>Дата</th>
-                  <th>Инструмент</th>
-                  <th>Стратегия</th>
-                  <th>R</th>
-                  <th>P&L</th>
-                  <th style="width:100px;">Действия</th>
-                </tr>
-              </thead>
-              <tbody id="recentTradesBody">
-                <!-- filled by JS -->
-              </tbody>
-            </table>
+            <div class="kpi-value" id="winRateValue">—</div>
+            <div class="kpi-delta" id="winRateDelta">—</div>
           </div>
-        </div>
-
-        <div class="stack">
-          <div class="card">
-            <div class="card-header split">
-              <h3>Заметки трейдера</h3>
-              <div class="note-meta">
-                <label class="select" style="display:inline-flex;align-items:center;gap:6px;">
-                  <span>Сортировка</span>
-                  <select id="notesSort">
-                    <option value="desc" selected>Новые сверху</option>
-                    <option value="asc">Старые сверху</option>
-                  </select>
-                </label>
+          <div class="card kpi hoverable">
+            <div class="kpi-header">
+              <span class="kpi-title">Всего сделок</span>
+              <span class="kpi-subtitle">(в периоде)</span>
+            </div>
+            <div class="kpi-value" id="tradesCountValue">—</div>
+            <div class="kpi-delta" id="tradesCountDelta">—</div>
+          </div>
+          <div class="card kpi hoverable">
+            <div class="kpi-header">
+              <span class="kpi-title">P&L</span>
+              <span class="kpi-subtitle">(в периоде)</span>
+            </div>
+            <div class="kpi-value" id="pnlValue">—</div>
+            <div class="kpi-delta" id="pnlDelta">—</div>
+          </div>
+        </section>
+        <section class="grid charts">
+          <div class="card chart">
+            <div class="card-header">
+              <h3>Equity Curve</h3>
+            </div>
+            <canvas id="equityChart" height="140"></canvas>
+          </div>
+          <div class="card chart">
+            <div class="card-header">
+              <h3>Win Rate</h3>
+            </div>
+            <canvas id="winrateChart" height="140"></canvas>
+          </div>
+          <div class="card chart">
+            <div class="card-header">
+              <h3>P&L по периодам</h3>
+            </div>
+            <canvas id="pnlChart" height="140"></canvas>
+          </div>
+          <div class="card chart">
+            <div class="card-header tabs">
+              <h3>Распределение</h3>
+              <div class="tab-buttons">
+                <button class="btn xs" data-pie="strategy">Стратегии</button>
+                <button class="btn xs ghost" data-pie="symbol">Символы</button>
               </div>
             </div>
-            <div class="notes-wrap">
-              <div class="note-tags" id="notesTags"></div>
-              <textarea id="notesArea" placeholder="Идеи, сетапы, наблюдения..." rows="8"></textarea>
-              <div class="notes-actions">
-                <label style="display:inline-flex;align-items:center;gap:6px;">
-                  <input type="checkbox" id="noteImportant"/> важно
-                </label>
-                <input id="noteNewTag" placeholder="тег" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--elev-2);color:var(--text);width:110px;">
-                <button id="addTagBtn" class="btn ghost">+ тег</button>
-                <button id="saveNotesBtn" class="btn">Сохранить</button>
-                <span id="notesSaved" class="muted"></span>
-              </div>
-            </div>
+            <canvas id="pieChart" height="140"></canvas>
           </div>
-
+        </section>
+        <section class="grid two-col">
           <div class="card">
             <div class="card-header split">
-              <h3>Цели / Прогресс</h3>
-              <button id="addGoalBtn" class="btn ghost">+ Цель</button>
+              <h3>Журнал сделок</h3>
+              <a id="journalLink" href="#" class="btn">Открыть</a>
             </div>
-            <ul id="goalsList" class="goals-list">
-              <!-- goals injected -->
-            </ul>
+            <div class="table-wrap">
+              <div class="table-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;">
+                <button id="addTradeBtn" class="btn">+ Добавить сделку</button>
+              </div>
+              <table class="table compact" id="recentTradesTable">
+                <thead>
+                  <tr>
+                    <th>Дата</th>
+                    <th>Инструмент</th>
+                    <th>Стратегия</th>
+                    <th>R</th>
+                    <th>P&L</th>
+                    <th style="width:100px;">Действия</th>
+                  </tr>
+                </thead>
+                <tbody id="recentTradesBody">
+                  <!-- filled by JS -->
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- SPA Content outlet (used when navigating to hash routes) -->
-    <div id="view" class="dashboard" style="display:none;"></div>
-
+          <div class="stack">
+            <div class="card">
+              <div class="card-header split">
+                <h3>Заметки трейдера</h3>
+                <div class="note-meta">
+                  <label class="select" style="display:inline-flex;align-items:center;gap:6px;">
+                    <span>Сортировка</span>
+                    <select id="notesSort">
+                      <option value="desc" selected>Новые сверху</option>
+                      <option value="asc">Старые сверху</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
+              <div class="notes-wrap">
+                <div class="note-tags" id="notesTags"></div>
+                <textarea id="notesArea" placeholder="Идеи, сетапы, наблюдения..." rows="8"></textarea>
+                <div class="notes-actions">
+                  <label style="display:inline-flex;align-items:center;gap:6px;">
+                    <input type="checkbox" id="noteImportant"/> важно
+                  </label>
+                  <input id="noteNewTag" placeholder="тег" style="padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--elev-2);color:var(--text);width:110px;">
+                  <button id="addTagBtn" class="btn ghost">+ тег</button>
+                  <button id="saveNotesBtn" class="btn">Сохранить</button>
+                  <span id="notesSaved" class="muted"></span>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header split">
+                <h3>Цели / Прогресс</h3>
+                <button id="addGoalBtn" class="btn ghost">+ Цель</button>
+              </div>
+              <ul id="goalsList" class="goals-list">
+                <!-- goals injected -->
+              </ul>
+            </div>
+          </div>
+        </section>
+      </main>
       <footer class="app-footer app-footer--pro">
-        <div class="af-center muted">
-          © 2025 Trading Journal Pro • Версия Beta 0.0.9
+        <div class="af-left">
+          <div class="user-mini">
+            <div class="avatar small">A</div>
+            <div class="uinfo">
+              <div class="uname">Admin</div>
+              <div class="umail muted">admin@trading.com</div>
+            </div>
+          </div>
         </div>
+        <div class="af-center muted">© 2025 Trading Journal Pro • Версия Beta 0.0.9</div>
         <div class="af-right muted">
           Последнее обновление: <span id="lastUpdate">—</span>
           <span class="status-dot online"></span> Соединение
         </div>
       </footer>
-  </div>
-
-  <!-- Скрипты, зависящие от Supabase, должны грузиться после SDK и без defer -->
-  <script src="assets/js/auth.js"></script>
-  <script type="module" src="assets/js/app.js"></script>
-  <script src="assets/js/accounts.js"></script>
-  <script>
-    // Global error handler
-    window.addEventListener('error', (e) => {
-      console.error('Global error:', e.error);
-    });
-
-    // Update last update time
-    function updateLastUpdateTime() {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('ru-RU', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        second: '2-digit'
+    </div>
+    <!-- Скрипты, зависящие от Supabase, должны грузиться после SDK и без defer -->
+    <script src="assets/js/auth.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
+    <script src="assets/js/accounts.js"></script>
+    <script>
+      // Global error handler
+      window.addEventListener('error', (e) => {
+        console.error('Global error:', e.error);
       });
-      const updateEl = document.getElementById('lastUpdate');
-      if (updateEl) {
-        updateEl.textContent = timeString;
-      }
-    }
 
-    // Update time every second
-    updateLastUpdateTime();
-    setInterval(updateLastUpdateTime, 1000);
-
-    // Check Chart.js availability
-    if (typeof Chart === 'undefined') {
-      console.error('Chart.js is not loaded. Please check the script tag.');
-    }
-
-    // Check if all required modules are loaded
-    document.addEventListener('DOMContentLoaded', () => {
-      // Check if auth module is loaded
-      if (typeof window.auth === 'undefined') {
-        console.warn('Auth module is not loaded');
+      // Update last update time
+      function updateLastUpdateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('ru-RU', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const updateEl = document.getElementById('lastUpdate');
+        if (updateEl) {
+          updateEl.textContent = timeString;
+        }
       }
 
-      // Check if app module is loaded
-      if (typeof window.initApp === 'undefined') {
-        console.warn('App module is not loaded');
+      // Update time every second
+      updateLastUpdateTime();
+      setInterval(updateLastUpdateTime, 1000);
+
+      // Check Chart.js availability
+      if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded. Please check the script tag.');
       }
-    });
-  </script>
-</body>
+
+      // Check if all required modules are loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        // Check if auth module is loaded
+        if (typeof window.auth === 'undefined') {
+          console.warn('Auth module is not loaded');
+        }
+
+        // Check if app module is loaded
+        if (typeof window.initApp === 'undefined') {
+          console.warn('App module is not loaded');
+        }
+      });
+    </script>
+  </body>
 </html>
