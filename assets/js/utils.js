@@ -109,6 +109,9 @@ export function bucketizeByPeriod(trades, period) {
   return Array.from(map.values()).sort((a,b) => a.label.localeCompare(b.label));
 }
 
+// Export date functions individually for use in state.js
+export const { startOfDay, addDays } = date;
+
 export function filterByDateRange(trades, from, to) {
   if (!from && !to) return trades;
   const f = from ? new Date(from).getTime() : -Infinity;
