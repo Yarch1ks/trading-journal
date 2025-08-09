@@ -140,19 +140,15 @@ function restoreSidebarState() {
 // Обработка изменения размера окна
 function handleResize() {
   if (!sidebar) return;
-  
   const isMobile = window.innerWidth <= 768;
   const isCollapsed = sidebar.classList.contains("collapsed");
-  
-  // На мобильных устройствах всегда скрываем оверлей при изменении размера
   if (isMobile) {
     document.body.classList.remove("sidebar-mobile-open");
-  }
-  
-  // При переходе с мобильной на десктопную версию
-  if (!isMobile && isCollapsed) {
-    // На десктопе убираем класс мобильного оверлея
-    document.body.classList.remove("sidebar-mobile-open");
+    sidebar.style.width = "100vw";
+    dashMain && (dashMain.style.maxWidth = "100vw");
+  } else {
+    sidebar.style.width = "";
+    dashMain && (dashMain.style.maxWidth = "1400px");
   }
 }
 
@@ -721,6 +717,7 @@ function toggleTheme() {
   const current = root.getAttribute("data-theme") || "light";
   const next = current === "light" ? "dark" : "light";
   root.setAttribute("data-theme", next);
+  document.body.style.transition = "background 0.3s";
   try { localStorage.setItem("tj.theme", next); } catch {}
 }
 
@@ -922,6 +919,9 @@ function renderKpiSpark(id, labels, values) {
 // Expose initApp globally for index.html compatibility
 window.initApp = init;
 
+// Initialize the app
+init();
+route();
 // Initialize the app
 init();
 route();

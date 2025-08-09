@@ -78,9 +78,9 @@ function themeColors() {
   const styles = getComputedStyle(document.documentElement);
   return {
     primary: styles.getPropertyValue("--primary").trim() || "#2563eb",
-    green: styles.getPropertyValue("--green").trim() || "#10b981",
-    red: styles.getPropertyValue("--red").trim() || "#ef4444",
-    text: styles.getPropertyValue("--text").trim() || "#0f172a",
+    green: styles.getPropertyValue("--success").trim() || "#10b981",
+    red: styles.getPropertyValue("--error").trim() || "#ef4444",
+    text: styles.getPropertyValue("--text").trim() || "#202124",
     border: styles.getPropertyValue("--border").trim() || "#e5e7eb",
     elev2: styles.getPropertyValue("--elev-2").trim() || "#fff"
   };
@@ -267,3 +267,10 @@ export function updateChart(chart, labels, values, mapper = v => v) {
   // поддерживаем аккуратный апдейт без дерганья
   chart.update("active");
 }
+
+window.addEventListener("resize", () => {
+  // destroy and recreate charts for responsive scaling
+  document.querySelectorAll("canvas").forEach(c => {
+    if (c.__chart__) { c.__chart__.destroy(); c.__chart__ = null; }
+  });
+});

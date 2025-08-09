@@ -13,34 +13,36 @@
   --text-muted: #606060;
   
   /* Brand colors */
-  --primary: #0066ff;
+  --primary: #2563eb;
   --primary-light: #3388ff;
-  --primary-dark: #0052cc;
-  --primary-bg: rgba(0, 102, 255, 0.1);
-  --primary-border: rgba(0, 102, 255, 0.2);
+  --primary-dark: #1e40af;
+  --primary-bg: rgba(37, 99, 235, 0.08);
+  --primary-border: rgba(37, 99, 235, 0.18);
   
   /* Success colors */
-  --success: #00d4aa;
-  --success-light: #33e6cc;
-  --success-bg: rgba(0, 212, 170, 0.1);
-  --success-border: rgba(0, 212, 170, 0.2);
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.08);
+  --success-border: rgba(16, 185, 129, 0.18);
   
   /* Warning colors */
-  --warning: #ff9500;
-  --warning-light: #ffaa33;
-  --warning-bg: rgba(255, 149, 0, 0.1);
-  --warning-border: rgba(255, 149, 0, 0.2);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.08);
+  --warning-border: rgba(245, 158, 11, 0.18);
   
   /* Error colors */
-  --error: #ff3366;
-  --error-light: #ff5588;
-  --error-bg: rgba(255, 51, 102, 0.1);
-  --error-border: rgba(255, 51, 102, 0.2);
+  --error: #ef4444;
+  --error-bg: rgba(239, 68, 68, 0.08);
+  --error-border: rgba(239, 68, 68, 0.18);
   
   /* Border colors */
+  --border: #e5e7eb;
   --border-primary: #333333;
   --border-secondary: #404040;
   --border-tertiary: #4a4a4a;
+  
+  /* Elevation */
+  --elev-1: #fff;
+  --elev-2: #f8f9fa;
   
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -126,6 +128,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/* Prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* Layout */
@@ -581,6 +589,9 @@ body.sidebar-collapsed .app-header {
   overflow: hidden;
   backdrop-filter: blur(10px);
   background: rgba(37, 37, 37, 0.95);
+  box-sizing: border-box;
+  max-width: 100%;
+  margin-bottom: var(--spacing-lg);
 }
 
 .card:hover {
@@ -1165,6 +1176,8 @@ body.sidebar-collapsed .app-footer {
   padding: var(--spacing-lg);
   max-width: var(--max-width);
   margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .grid {
@@ -1240,6 +1253,11 @@ body.sidebar-collapsed .app-footer {
   }
   .card {
     padding: var(--spacing-md);
+    max-width: 100vw;
+  }
+  .app-header, .app-footer {
+    padding: 0 var(--spacing-md);
+    max-width: 100vw;
   }
   .app-header--pro {
     padding: 0 var(--spacing-md);
@@ -1635,4 +1653,9 @@ body.sidebar-collapsed .app-footer {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Prevent overflow for all blocks */
+* {
+  box-sizing: border-box;
 }

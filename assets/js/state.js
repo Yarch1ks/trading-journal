@@ -373,7 +373,7 @@ export function filterTradesByPeriod(trades, period) {
   const now = new Date();
   let from;
   if (period === "1D") {
-    from = startOfDay(now); // Используем утилиту для начала дня
+    from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   } else if (period === "1W") {
     from = new Date(now); from.setDate(now.getDate() - 7);
   } else if (period === "1M") {

@@ -298,6 +298,7 @@ function renderTable(rows) {
   const pageRows = paginate(rows);
   pageRows.forEach(tr => {
     const trEl = document.createElement("tr");
+    trEl.style.maxWidth = "100vw";
     const rr2 = Number(tr.r || 0).toFixed(2);
     const net2 = Number(tr.pnl || 0).toFixed(2);
     trEl.innerHTML = `
@@ -673,6 +674,10 @@ function wireEvents() {
     });
   }
 }
+
+window.addEventListener("resize", () => {
+  tbl && (tbl.style.maxWidth = window.innerWidth <= 768 ? "100vw" : "");
+});
 
 // Helper function to generate ID
 function genId(prefix = "t") {

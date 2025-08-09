@@ -29,10 +29,11 @@
     }
   });
 </script>
-<html lang="ru" data-theme="light">
+<html lang="ru" data-theme="light" style="min-width:320px;">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="color-scheme" content="light dark"/>
   <title>Trading Journal — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <!-- font-display: swap to reduce layout shift on initial load -->
@@ -40,7 +41,7 @@
   <link rel="stylesheet" href="assets/css/styles.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
-<body>
+<body style="overflow-x:hidden;">
     <div id="app">
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar" aria-label="Main navigation">
@@ -144,7 +145,7 @@
           </div>
         </div>
       </header>
-      <main class="dashboard">
+      <main class="dashboard" style="max-width:1400px;margin:0 auto;">
         <section class="grid kpis separated kpis-fixed">
           <div class="card kpi hoverable">
             <div class="kpi-header">
